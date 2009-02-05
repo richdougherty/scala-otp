@@ -10,14 +10,14 @@ class AsyncLazyFuture[A](f: AsyncFunction0[A]) extends AsyncFuture[A] {
   
   private var state: State = Initial(f)
 
-  def apply(fc: FC[A]): Nothing = synchronized {
+  def ->(fc: FC[A]): Nothing = synchronized {
     state match {
       case Initial(f) => {
         force
-        apply(fc) // Reapply now that state has changed.
+        ->(fc) // Reapply now that state has changed.
       }
       case Run(promise) => {
-        promise(fc)
+        promise -> fc
       }
     }
   }

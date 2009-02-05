@@ -10,18 +10,24 @@ import scala.actors.controlflow.ControlFlow._
 trait AsyncFunction0[+R] extends AnyRef {
 
   /**
+   * Execute the function, sending the result to one of the provided
+   * continuations.
+   */
+  def ->(fc: FC[R]): Nothing
+
+  /**
    * Apply this function. The result will be provided via one of the given
    * <code>FC</code>'s continuations: either <code>ret</code> or
    * <code>thr</code>.
    */
-  def apply(fc: FC[R]): Nothing
+  final def apply(fc: FC[R]): Nothing = ->(fc)
 
   /**
    * Create a function which executes this function then passes its result to
    * the given function.
    */
   def andThen[A](g: AsyncFunction1[R, A]) = new AsyncFunction0[A] {
-    def apply(fc: FC[A]) = {
+    def ->(fc: FC[A]) = {
       assert(fc != null)
       import fc.implicitThr
       AsyncFunction0.this.apply { result: R => g(result)(fc) }
@@ -59,7 +65,7 @@ trait AsyncFunction0[+R] extends AnyRef {
    * longer than <code>msec</code> milliseconds to execute.
    */
   def within(msec: Long): AsyncFunction0[R] = new AsyncFunction0[R] {
-    def apply(fc: FC[R]): Nothing = {
+    def ->(fc: FC[R]): Nothing = {
       assert(fc != null)
       val channel = AsyncFunction0.this.applyInActor
       channel.reactWithin(msec) {

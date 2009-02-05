@@ -24,7 +24,7 @@ case class Return[+R](value: R) extends FunctionResult[R] {
     override def toAsyncFunction = Return.this.toAsyncFunction
   }
   def toAsyncFunction = new AsyncFunction0[R] {
-    def apply(fc: FC[R]): Nothing = fc.ret(value)
+    def ->(fc: FC[R]): Nothing = fc.ret(value)
     override def toFunction = Return.this.toFunction
   }
 }
@@ -36,7 +36,7 @@ case class Throw(throwable: Throwable) extends FunctionResult[Nothing] {
     override def toAsyncFunction = Throw.this.toAsyncFunction
   }
   def toAsyncFunction = new AsyncFunction0[Nothing] {
-    def apply(fc: FC[Nothing]): Nothing = fc.thr(throwable)
+    def ->(fc: FC[Nothing]): Nothing = fc.thr(throwable)
     override def toFunction = Throw.this.toFunction
   }
 }

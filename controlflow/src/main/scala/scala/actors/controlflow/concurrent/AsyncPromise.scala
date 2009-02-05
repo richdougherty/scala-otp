@@ -11,14 +11,14 @@ class AsyncPromise[A] extends AsyncFuture[A] {
   
   private var state: State = Unset(Queue.Empty)
 
-  def apply(fc: FC[A]): Nothing = synchronized {
+  def ->(fc: FC[A]): Nothing = synchronized {
     state match {
       case Unset(pending) => {
         state = Unset(pending + fc)
         Actor.exit
       }
       case Set(result) => {
-        result.toAsyncFunction.apply(fc)
+        result.toAsyncFunction -> fc
       }
     }
   }

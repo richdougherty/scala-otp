@@ -11,7 +11,7 @@ import scala.collection.immutable.Queue
  */
 class AsyncConstantFuture[A](value: FunctionResult[A]) extends AsyncFuture[A] {
 
-  def apply(fc: FC[A]): Nothing = value.toAsyncFunction.apply(fc)
+  def ->(fc: FC[A]): Nothing = value.toAsyncFunction.->(fc)
 
   def isSet: Boolean = true
   

@@ -20,7 +20,7 @@ trait AsyncFunction1[-T1, +R] extends AnyRef {
    * to this function.
    */
   def compose[A](g: AsyncFunction0[T1]) = new AsyncFunction0[R] {
-    def apply(fc: FC[R]) = {
+    def ->(fc: FC[R]) = {
       assert(fc != null)
       import fc.implicitThr
       g { result: T1 => AsyncFunction1.this.apply(result)(fc) }
@@ -33,7 +33,7 @@ trait AsyncFunction1[-T1, +R] extends AnyRef {
    */
   def compose[A](g: AsyncFunction1[A, T1]) = new AsyncFunction1[A, R] {
     def apply(x: A) = new AsyncFunction0[R] {
-      def apply(fc: FC[R]) = {
+      def ->(fc: FC[R]) = {
         assert(fc != null)
         import fc.implicitThr
         g(x) { result: T1 => AsyncFunction1.this.apply(result)(fc) }
@@ -47,7 +47,7 @@ trait AsyncFunction1[-T1, +R] extends AnyRef {
    */
   def andThen[A](g: AsyncFunction1[R, A]) = new AsyncFunction1[T1, A] {
     def apply(x: T1) = new AsyncFunction0[A] {
-      def apply(fc: FC[A]) = {
+      def ->(fc: FC[A]) = {
         assert(fc != null)
         import fc.implicitThr
         AsyncFunction1.this.apply(x) { result: R => g(result)(fc) }
@@ -87,7 +87,7 @@ trait AsyncFunction1[-T1, +R] extends AnyRef {
    */
   def within(msec: Long): AsyncFunction1[T1, R] = new AsyncFunction1[T1, R] {
     def apply(v1: T1) = new AsyncFunction0[R] {
-      def apply(fc: FC[R]) = {
+      def ->(fc: FC[R]) = {
         assert(fc != null)
         val channel = applyInActor(v1)
         channel.reactWithin(msec) {
