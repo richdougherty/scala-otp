@@ -144,7 +144,7 @@
           <scalaVersion>${scala.version}</scalaVersion>
 	  <args>
 	    <!--arg>-deprecation</arg-->
-	    <arg>-Ywarn-dead-code</arg>
+	    <!--arg>-Ywarn-dead-code</arg-->
 	  </args>
         </configuration>
       </plugin>
