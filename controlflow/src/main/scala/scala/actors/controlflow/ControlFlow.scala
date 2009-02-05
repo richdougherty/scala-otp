@@ -166,12 +166,14 @@ object ControlFlow {
    * </pre>
    */
   implicit def asyncFunction1[T1, R](f: Function2[T1, FC[R], Nothing]): AsyncFunction1[T1, R] = new AsyncFunction1[T1, R] {
-    def apply(v1: T1)(fc: FC[R]) = {
-      assert(fc != null)
-      try {
-        f(v1, fc)
-      } catch {
-        case t if !isControlFlowThrowable(t) => fc.thr(t)
+    def apply(v1: T1) = new AsyncFunction0[R] {
+      def apply(fc: FC[R]) = {
+        assert(fc != null)
+        try {
+          f(v1, fc)
+        } catch {
+          case t if !isControlFlowThrowable(t) => fc.thr(t)
+        }
       }
     }
   }
@@ -225,9 +227,11 @@ object ControlFlow {
     }
 
     def toAsyncFunction = new AsyncFunction1[T1, R] {
-      def apply(v1: T1)(fc: FC[R]) = {
-        assert(fc != null)
-        resultApply(v1).toAsyncFunction(fc)
+      def apply(v1: T1) = new AsyncFunction0[R] {
+        def apply(fc: FC[R]) = {
+          assert(fc != null)
+          resultApply(v1).toAsyncFunction(fc)
+        }
       }
 
       override def toFunction: RichFunction1[T1, R] = self

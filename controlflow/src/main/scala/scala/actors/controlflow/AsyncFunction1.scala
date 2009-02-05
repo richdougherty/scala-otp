@@ -13,7 +13,7 @@ trait AsyncFunction1[-T1, +R] extends AnyRef {
    * <code>FC</code>'s continuations: either <code>ret</code> or
    * <code>thr</code>.
    */
-  def apply(v1: T1)(fc: FC[R]): Nothing
+  def apply(v1: T1): AsyncFunction0[R]
 
   /**
    * Create a function which executes the given function then passes its result
@@ -32,10 +32,12 @@ trait AsyncFunction1[-T1, +R] extends AnyRef {
    * to this function.
    */
   def compose[A](g: AsyncFunction1[A, T1]) = new AsyncFunction1[A, R] {
-    def apply(x: A)(fc: FC[R]) = {
-      assert(fc != null)
-      import fc.implicitThr
-      g(x) { result: T1 => AsyncFunction1.this.apply(result)(fc) }
+    def apply(x: A) = new AsyncFunction0[R] {
+      def apply(fc: FC[R]) = {
+        assert(fc != null)
+        import fc.implicitThr
+        g(x) { result: T1 => AsyncFunction1.this.apply(result)(fc) }
+      }
     }
   }
 
@@ -44,10 +46,12 @@ trait AsyncFunction1[-T1, +R] extends AnyRef {
    * the given function.
    */
   def andThen[A](g: AsyncFunction1[R, A]) = new AsyncFunction1[T1, A] {
-    def apply(x: T1)(fc: FC[A]) = {
-      assert(fc != null)
-      import fc.implicitThr
-      AsyncFunction1.this.apply(x) { result: R => g(result)(fc) }
+    def apply(x: T1) = new AsyncFunction0[A] {
+      def apply(fc: FC[A]) = {
+        assert(fc != null)
+        import fc.implicitThr
+        AsyncFunction1.this.apply(x) { result: R => g(result)(fc) }
+      }
     }
   }
   
@@ -82,11 +86,13 @@ trait AsyncFunction1[-T1, +R] extends AnyRef {
    * longer than <code>msec</code> milliseconds to execute.
    */
   def within(msec: Long): AsyncFunction1[T1, R] = new AsyncFunction1[T1, R] {
-    def apply(v1: T1)(fc: FC[R]): Nothing = {
-      assert(fc != null)
-      val channel = applyInActor(v1)
-      channel.reactWithin(msec) {
-        case msg: Any => messageResult(msg).toAsyncFunction.apply(fc)
+    def apply(v1: T1) = new AsyncFunction0[R] {
+      def apply(fc: FC[R]) = {
+        assert(fc != null)
+        val channel = applyInActor(v1)
+        channel.reactWithin(msec) {
+          case msg: Any => messageResult(msg).toAsyncFunction.apply(fc)
+        }
       }
     }
   }
