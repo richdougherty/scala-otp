@@ -11,27 +11,31 @@ class AsyncLock {
 
   private var state: State = Unlocked
 
-  def lock(fc: FC[Unit]): Nothing = synchronized {
-    state match {
-      case Unlocked => {
-        state = Locked(Queue.Empty)
-        fc.ret(())
-      }
-      case Locked(q) => {
-        state = Locked(q + fc)
-        Actor.exit
+  def lock = new AsyncFunction0[Unit] {
+    def ->(fc: FC[Unit]): Nothing = synchronized {
+      state match {
+        case Unlocked => {
+          state = Locked(Queue.Empty)
+          fc.ret(())
+        }
+        case Locked(q) => {
+          state = Locked(q + fc)
+          Actor.exit
+        }
       }
     }
   }
 
-  def tryLock(fc: FC[Boolean]): Nothing = synchronized {
-    state match {
-      case Unlocked => {
-        state = Locked(Queue.Empty)
-        fc.ret(true)
-      }
-      case Locked(q) => {
-        fc.ret(false)
+  def tryLock = new AsyncFunction0[Boolean] {
+    def ->(fc: FC[Boolean]): Nothing = synchronized {
+      state match {
+        case Unlocked => {
+          state = Locked(Queue.Empty)
+          fc.ret(true)
+        }
+        case Locked(q) => {
+          fc.ret(false)
+        }
       }
     }
   }
@@ -57,11 +61,7 @@ class AsyncLock {
    * lock.syn(f)(fc)
    * </pre>
    */
-  def syn[R](f: AsyncFunction0[R]): AsyncFunction0[R] = {
-    { (fc: FC[R]) =>
-      import fc.implicitThr
-      val finFC = fc.fin((() => unlock).toAsyncFunction)
-      lock { () => f(finFC) }
-    }
+  def syn[R](f: AsyncFunction0[R]) = new AsyncFunction0[R] {
+    def ->(fc: FC[R]) = lock -> f -> fc.fin(async0 { unlock })
   }
 }

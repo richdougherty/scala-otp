@@ -15,6 +15,16 @@ trait AsyncFunction0[+R] extends AnyRef {
    */
   def ->(fc: FC[R]): Nothing
 
+  def ->[A](g: AsyncFunction0[A]): AsyncFunction0[A] = new AsyncFunction0[A] {
+    def ->(fc: FC[A]) = {
+      assert(fc != null)
+      import fc.implicitThr
+      AsyncFunction0.this -> fc0 { g -> fc }
+    }
+  }
+
+  def ->[A](g: AsyncFunction1[R, A]): AsyncFunction0[A] = andThen(g)
+
   /**
    * Apply this function. The result will be provided via one of the given
    * <code>FC</code>'s continuations: either <code>ret</code> or
@@ -90,5 +100,26 @@ trait AsyncFunction0[+R] extends AnyRef {
     }
 
     def toAsyncFunction = AsyncFunction0.this
+  }
+
+  def map[A](f: R => A): AsyncFunction0[A] = new AsyncFunction0[A] {
+    def ->(fc: FC[A]) = {
+      import fc.implicitThr
+      AsyncFunction0.this -> async1 { f(_: R) } -> fc
+    }
+  }
+
+  def flatMap[A](f: R => AsyncFunction0[A]) = new AsyncFunction0[A] {
+    def ->(fc: FC[A]) = {
+      import fc.implicitThr
+      AsyncFunction0.this -> fc1 { f(_) -> fc }
+    }
+  }
+
+  def filter(p: R => Boolean) = new AsyncFunction0[R] {
+    def ->(fc: FC[R]) = {
+      import fc.implicitThr
+      AsyncFunction0.this -> fc1 { r: R => if (p(r)) fc.ret(r) }
+    }
   }
 }

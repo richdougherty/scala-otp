@@ -7,6 +7,44 @@ import scala.actors._
  */
 object ControlFlow {
 
+  def cont0(body: => Unit)(implicit thr: Cont[Throwable]): Cont[Unit] =
+    cont1 { _: Any => body }
+
+  def cont1[R](f: R => Unit)(implicit thr: Cont[Throwable]): Cont[R] = {
+    new Cont[R] {
+      def apply(value: R): Nothing = {
+        inReaction {
+          try {
+            f(value)
+            Actor.exit
+          } catch {
+            case t if !isControlFlowThrowable(t) => thr(t)
+          }
+        }
+      }
+    }
+  }
+
+  def fc0(body: => Unit)(implicit thr: Cont[Throwable]) =
+    fc1 { _: Any => body }
+
+  def fc1[R](f: R => Unit)(implicit thr: Cont[Throwable]): FC[R] = {
+    val ret: Cont[R] = cont1(f)(thr)
+    FC(ret, thr)
+  }
+
+  def async0[R](body: => R): AsyncFunction0[R] = new AsyncFunction0[R] {
+    def ->(fc: FC[R]) = {
+      assert(fc != null)
+      // XXX: Could call fc.ret() outside try, to avoid spurious catch of actor exception.
+      try { fc.ret(body) } catch { case t if !isControlFlowThrowable(t) => fc.thr(t) }
+    }
+  }
+
+  def async1[T1, R](f: T1 => R): AsyncFunction1[T1, R] = new AsyncFunction1[T1, R] {
+    def apply(v1: T1) =  async0 { f(v1) }
+  }
+
   // Continuations
 
   /**
