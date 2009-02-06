@@ -15,33 +15,37 @@ trait AsyncReadable {
 
   @volatile
   private var readStreamFuture: AsyncFuture[AsyncStream[Binary]] =
-    new AsyncLazyFuture[AsyncStream[Binary]](nextReadStream _)
+    new AsyncLazyFuture[AsyncStream[Binary]](nextReadStream)
 
-  private def nextReadStream(fc: FC[AsyncStream[Binary]]): Nothing = {
-    import fc.implicitThr
-    internalRead(defaultReadLength) { binary: Binary =>
-      if (binary.isEmpty) {
-        fc.ret(AsyncStream.empty)
-      } else {
-        val stream = AsyncStream.cons(binary, nextReadStream _)
-        readStreamFuture = stream.asyncTail
-        fc.ret(stream)
+  private def nextReadStream: AsyncFunction0[AsyncStream[Binary]] = new AsyncFunction0[AsyncStream[Binary]] {
+    def ->(fc: FC[AsyncStream[Binary]]) = {
+      import fc.implicitThr
+      internalRead(defaultReadLength) -> { binary: Binary =>
+        if (binary.isEmpty) {
+          fc.ret(AsyncStream.empty)
+        } else {
+          val stream = AsyncStream.cons(binary, nextReadStream)
+          readStreamFuture = stream.asyncTail
+          fc.ret(stream)
+        }
       }
     }
   }
 
   // returns zero-length Binary when reaches end
-  protected def internalRead(length: Int)(fc: FC[Binary]): Nothing
+  protected def internalRead(length: Int): AsyncFunction0[Binary]
 
   final def asyncReadStream: AsyncFuture[AsyncStream[Binary]] = readStreamFuture
 
-  final def asyncRead(fc: FC[Binary]): Nothing = asyncReadLength(defaultReadLength)(fc)
+  final def asyncRead: AsyncFunction0[Binary] = asyncReadLength(defaultReadLength)
 
-  final def asyncReadLength(length: Int)(fc: FC[Binary]): Nothing = internalRead(length)(fc)
+  final def asyncReadLength(length: Int): AsyncFunction0[Binary] = internalRead(length)
 
-  final def asyncReadAll(fc: FC[Binary]): Nothing = {
-    import fc.implicitThr
-    val append = ((bs: (Binary, Binary)) => bs._1 ++ bs._2).toAsyncFunction
-    asyncReadStream -> fc1 { as: AsyncStream[Binary] => as.asyncFoldLeft(Binary.empty)(append) -> fc }
+  final def asyncReadAll = new AsyncFunction0[Binary] {
+    def ->(fc: FC[Binary]) = {
+      import fc.implicitThr
+      val append = ((bs: (Binary, Binary)) => bs._1 ++ bs._2).toAsyncFunction
+      asyncReadStream -> fc1 { as: AsyncStream[Binary] => as.asyncFoldLeft(Binary.empty)(append) -> fc }
+    }
   }
 }

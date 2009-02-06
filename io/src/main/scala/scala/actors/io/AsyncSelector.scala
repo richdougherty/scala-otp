@@ -84,38 +84,40 @@ class AsyncSelector(val selector: Selector) {
   }
 
   // note: method blocks until operation registered - could run in new actor?
-  def register(ch: SelectableChannel, op: Operation)(fc: FC[Unit]): Nothing = {
-    try {
-      val key = ch.register(selector, 0, Map())
-      key.synchronized { // XXX: Synchronize on ch.blockingLock instead?
-        val currentInterestOps = key.interestOps
-        val newInterestOps = currentInterestOps | op.mask
-        //println("AsyncSelector: currentInterestOps: " + currentInterestOps)
-        //println("AsyncSelector: newInterestOps: " + newInterestOps)
-        if (newInterestOps != currentInterestOps) {
-          //println("AsyncSelector: setting interestOps: " + newInterestOps)
-          key.interestOps(newInterestOps)
+  def register(ch: SelectableChannel, op: Operation) = new AsyncFunction0[Unit] {
+    def ->(fc: FC[Unit]): Nothing = {
+      try {
+        val key = ch.register(selector, 0, Map())
+        key.synchronized { // XXX: Synchronize on ch.blockingLock instead?
+          val currentInterestOps = key.interestOps
+          val newInterestOps = currentInterestOps | op.mask
+          //println("AsyncSelector: currentInterestOps: " + currentInterestOps)
+          //println("AsyncSelector: newInterestOps: " + newInterestOps)
+          if (newInterestOps != currentInterestOps) {
+            //println("AsyncSelector: setting interestOps: " + newInterestOps)
+            key.interestOps(newInterestOps)
+          }
+          val oldOpMap = key.attachment.asInstanceOf[Map[Operation,Queue[FC[Unit]]]]
+          val oldOpEntry = oldOpMap.getOrElse(op, Queue.Empty)
+          val newOpEntry = oldOpEntry + fc
+          val newOpMap = oldOpMap + ((op, newOpEntry))
+          key.attach(newOpMap)
         }
-        val oldOpMap = key.attachment.asInstanceOf[Map[Operation,Queue[FC[Unit]]]]
-        val oldOpEntry = oldOpMap.getOrElse(op, Queue.Empty)
-        val newOpEntry = oldOpEntry + fc
-        val newOpMap = oldOpMap + ((op, newOpEntry))
-        key.attach(newOpMap)
+      } catch {
+        // FC cannot have been called previously, since attach has failed.
+        case e: Exception => fc.thr(e)
       }
-    } catch {
-      // FC cannot have been called previously, since attach has failed.
-      case e: Exception => fc.thr(e)
-    }
-    // Start actor if first registration.
-    synchronized {
-      if (registrationCount == 0) {
-        //println("AsyncSelector: starting.")
-        selectActor = Some(Actor.actor { selectionLoop })
+      // Start actor if first registration.
+      synchronized {
+        if (registrationCount == 0) {
+          //println("AsyncSelector: starting.")
+          selectActor = Some(Actor.actor { selectionLoop })
+        }
+        registrationCount += 1
+        //println("AsyncSelector: registrationCount: " + registrationCount)
       }
-      registrationCount += 1
-      //println("AsyncSelector: registrationCount: " + registrationCount)
+      Actor.exit
     }
-    Actor.exit
   }
 
 }

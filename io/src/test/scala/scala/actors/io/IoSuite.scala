@@ -43,11 +43,11 @@ class IoSuite extends TestNGSuite with Checkers {
       val rssc  = new AsyncServerSocketChannel(ssc, selector)
       Actor.actor {
         println("Accepting")
-        rssc.asyncAccept { sc1: SocketChannel => 
+        rssc.asyncAccept -> fc1 { sc1: SocketChannel => 
           sc1.configureBlocking(false)
           val rsc1 = new AsyncSocketChannel(sc1, selector)
           println("Sending: " + new String(binary.toArray))
-          rsc1.asyncWrite(binary) { () => println("Closing socket") ; sc1.close }
+          rsc1.asyncWrite(binary) -> fc0 { println("Closing socket") ; sc1.close }
           println("Closing server socket")
           ssc.close
         }
@@ -57,7 +57,7 @@ class IoSuite extends TestNGSuite with Checkers {
         sc2.configureBlocking(false)
         val rsc2 = new AsyncSocketChannel(sc2, selector)
         println("Connecting")
-        rsc2.asyncConnect(address) { () => println("Receiving") ; rsc2.asyncReadAll(fc) }
+        rsc2.asyncConnect(address) -> fc0 { println("Receiving") ; rsc2.asyncReadAll -> fc }
       }
       Actor.exit
     }.toFunction.apply

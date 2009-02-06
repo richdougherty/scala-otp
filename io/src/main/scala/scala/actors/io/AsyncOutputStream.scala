@@ -8,12 +8,14 @@ import scala.binary.Binary
 class AsyncOutputStream(out: OutputStream) extends AsyncWritable {
   if (out == null) throw new NullPointerException
   
-  final protected def internalWrite(binary: Binary)(fc: FC[Unit]): Nothing = {
-    try {
-      write(binary)
-      fc.ret(())
-    } catch {
-      case e: Exception => fc.thr(e)
+  final protected def internalWrite(binary: Binary) = new AsyncFunction0[Unit] {
+    def ->(fc: FC[Unit]): Nothing = {
+      try {
+        write(binary)
+        fc.ret(())
+      } catch {
+        case e: Exception => fc.thr(e)
+      }
     }
   }
 

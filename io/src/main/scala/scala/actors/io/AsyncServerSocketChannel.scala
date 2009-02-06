@@ -11,18 +11,20 @@ import scala.collection.jcl.Conversions._
 
 class AsyncServerSocketChannel(val channel: ServerSocketChannel, val asyncSelector: AsyncSelector) {
 
-  def asyncAccept(fc: FC[SocketChannel]): Nothing = {
-    import fc.implicitThr
-    def asyncAccept0: Nothing = {
-      channel.accept match {
-        case null => {
-          // Accept failed, use selector to callback when ready.
-          asyncSelector.register(channel, AsyncSelector.Accept) { () => asyncAccept0 }
+  def asyncAccept = new AsyncFunction0[SocketChannel] {
+    def ->(fc: FC[SocketChannel]): Nothing = {
+      import fc.implicitThr
+      def asyncAccept0: Nothing = {
+        channel.accept match {
+          case null => {
+            // Accept failed, use selector to callback when ready.
+            asyncSelector.register(channel, AsyncSelector.Accept) -> fc0 { asyncAccept0 }
+          }
+          case socketChannel => fc.ret(socketChannel)
         }
-        case socketChannel => fc.ret(socketChannel)
       }
+      asyncAccept0
     }
-    asyncAccept0
   }
 
 }

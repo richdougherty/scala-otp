@@ -14,15 +14,16 @@ trait AsyncWritable {
 
   private val writeLock = new AsyncLock()
 
-  protected def internalWrite(binary: Binary)(fc: FC[Unit]): Nothing
+  protected def internalWrite(binary: Binary): AsyncFunction0[Unit]
 
-  final def asyncWrite(binary: Binary)(fc: FC[Unit]): Nothing = {
-    writeLock.syn(internalWrite(binary)(_: FC[Unit])) -> fc
+  final def asyncWrite(binary: Binary): AsyncFunction0[Unit] = {
+    writeLock.syn(internalWrite(binary))
   }
 
-  final private def asyncWrite(as: AsyncStream[Binary])(fc: FC[Unit]): Nothing = {
-    (writeLock.syn { (fc2: FC[Unit]) =>
-      as.asyncForeach(internalWrite(_: Binary)(_: FC[Unit])) -> fc2
-    }) -> fc
+  final private def asyncWrite(as: AsyncStream[Binary]): AsyncFunction0[Unit] = {
+    writeLock.syn(as.asyncForeach(new AsyncFunction1[Binary, Unit] {
+      def apply(binary: Binary) = internalWrite(binary: Binary)
+    }))
   }
+
 }

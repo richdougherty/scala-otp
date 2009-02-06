@@ -14,19 +14,21 @@ class AsyncSocketChannel(val channel: SocketChannel, val asyncSelector: AsyncSel
   @volatile
   var readLength: Int = 256
 
-  def asyncConnect(remote: SocketAddress)(fc: FC[Unit]): Nothing = {
-    import fc.implicitThr
-    channel.connect(remote)
-    def asyncConnect0: Nothing = {
-      channel.finishConnect match {
-        case true => fc.ret(())
-        case false => {
-          // Connect failed, use selector to callback when ready.
-          asyncSelector.register(channel, AsyncSelector.Connect) { () => asyncConnect0 }
+  def asyncConnect(remote: SocketAddress) = new AsyncFunction0[Unit] {
+    def ->(fc: FC[Unit]): Nothing = {
+      import fc.implicitThr
+      channel.connect(remote)
+      def asyncConnect0: Nothing = {
+        channel.finishConnect match {
+          case true => fc.ret(())
+          case false => {
+            // Connect failed, use selector to callback when ready.
+            asyncSelector.register(channel, AsyncSelector.Connect) -> fc0 { asyncConnect0 }
+          }
         }
       }
+      asyncConnect0
     }
-    asyncConnect0
   }
 
 }
