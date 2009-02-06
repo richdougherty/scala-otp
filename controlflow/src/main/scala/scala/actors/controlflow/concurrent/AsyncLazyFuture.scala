@@ -27,7 +27,7 @@ class AsyncLazyFuture[A](f: AsyncFunction0[A]) extends AsyncFuture[A] {
       case Initial(f) => {
         val promise = new AsyncPromise[A]
         state = Run(promise)
-        Actor.actor { f((result: FunctionResult[A]) => promise.set(result)) }
+        Actor.actor { f -> resultFC((result: FunctionResult[A]) => promise.set(result)) }
       }
       case _ => ()
     }

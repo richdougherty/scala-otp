@@ -6,7 +6,7 @@ class AsyncEagerFuture[A](f: AsyncFunction0[A]) extends AsyncFuture[A] {
 
   private val promise = new AsyncPromise[A]
 
-  Actor.actor { f((result: FunctionResult[A]) => promise.set(result)) }
+  Actor.actor { f -> resultFC((result: FunctionResult[A]) => promise.set(result)) }
 
   def ->(fc: FC[A]): Nothing = promise -> fc
   

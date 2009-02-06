@@ -45,8 +45,7 @@ class ControlFlowSuite extends TestNGSuite with Checkers {
       val caller = Actor.self
       class TestException extends java.lang.Exception
       try {
-        { fc: FC[Unit] => 
-          import fc.implicitThr
+        async0 {
           assert(Actor.self != caller) // Should be running in a different actor.
           throw new TestException
         }.toFunction.apply
@@ -67,7 +66,7 @@ class ControlFlowSuite extends TestNGSuite with Checkers {
         { fc: FC[Unit] => 
           import fc.implicitThr
           val asyncFunction: AsyncFunction0[Unit] = { () => }.toAsyncFunction
-          asyncFunction { () =>
+          asyncFunction -> fc0 {
             assert(Actor.self != caller) // Should be running in a different actor.
             throw new TestException
           }

@@ -30,17 +30,17 @@ trait AsyncIterator[+A] {
       noNextHandler: => AsyncFunction0[C]) = new AsyncFunction0[C] {
         def ->(fc: FC[C]): Nothing = {
           import fc.implicitThr
-          cur.hasNext { (curHasNext: Boolean) =>
-            if (curHasNext) curHasNextHandler(fc)
+          cur.hasNext -> fc1 { (curHasNext: Boolean) =>
+            if (curHasNext) curHasNextHandler -> fc
             else {
-              AsyncIterator.this.hasNext { (origHasNext: Boolean) =>
+              AsyncIterator.this.hasNext -> fc1 { (origHasNext: Boolean) =>
                 if (origHasNext) {
                   AsyncIterator.this.next -> f -> fc1 { (fResult: AsyncIterator[B]) =>
                     cur = fResult
-                    origHasNextHandler(fc)
+                    origHasNextHandler -> fc
                   }
                 } else {
-                  noNextHandler(fc)
+                  noNextHandler -> fc
                 }
               }
             }
@@ -73,15 +73,15 @@ trait AsyncIterator[+A] {
           case s: Some[A] => fc.ret(())
           case None => {
             import fc.implicitThr
-            AsyncIterator.this.hasNext { (origHasNext: Boolean) =>
+            AsyncIterator.this.hasNext -> fc1 { (origHasNext: Boolean) =>
               if (origHasNext) {
-                AsyncIterator.this.next { (origNext: A) =>
-                  p(origNext) { (matches: Boolean) =>
+                AsyncIterator.this.next -> fc1 { (origNext: A) =>
+                  p(origNext) -> fc1 { (matches: Boolean) =>
                     if (matches) {
                       loaded = Some(origNext)
                       fc.ret(())
                     } else {
-                      loadNext(fc)
+                      loadNext -> fc
                     }
                   }
                 }
@@ -119,12 +119,10 @@ trait AsyncIterator[+A] {
   def asyncForeach(f: AsyncFunction1[A, Unit]): AsyncFunction0[Unit] = new AsyncFunction0[Unit] {
     def ->(fc: FC[Unit]): Nothing = {
       import fc.implicitThr
-      AsyncIterator.this.hasNext { (origHasNext: Boolean) =>
+      AsyncIterator.this.hasNext -> fc1 { (origHasNext: Boolean) =>
         if (origHasNext) {
-          AsyncIterator.this.next { (a: A) =>
-            f(a) { () =>
-              asyncForeach(f)(fc)
-            }
+          AsyncIterator.this.next -> fc1 { (a: A) =>
+            f(a) -> fc0 { asyncForeach(f) -> fc }
           }
         } else fc.ret(())
       }
@@ -134,11 +132,11 @@ trait AsyncIterator[+A] {
   def asyncFoldLeft[B](z: B)(op: AsyncFunction1[(B, A), B]): AsyncFunction0[B] = new AsyncFunction0[B] {
     def ->(fc: FC[B]): Nothing = {
       import fc.implicitThr
-      hasNext { hasNextResult: Boolean =>
+      hasNext -> { hasNextResult: Boolean =>
         if (hasNextResult) {
-          next { nextResult: A =>
-            op((z, nextResult)) { zNew: B =>
-              asyncFoldLeft(zNew)(op)(fc)
+          next -> fc1 { nextResult: A =>
+            op((z, nextResult)) -> fc1 { zNew: B =>
+              asyncFoldLeft(zNew)(op) -> fc
             }
           }
         } else {

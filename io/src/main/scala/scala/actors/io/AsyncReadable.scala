@@ -42,8 +42,6 @@ trait AsyncReadable {
   final def asyncReadAll(fc: FC[Binary]): Nothing = {
     import fc.implicitThr
     val append = ((bs: (Binary, Binary)) => bs._1 ++ bs._2).toAsyncFunction
-    asyncReadStream { as: AsyncStream[Binary] =>
-      as.asyncFoldLeft(Binary.empty)(append)(fc)
-    }
+    asyncReadStream -> fc1 { as: AsyncStream[Binary] => as.asyncFoldLeft(Binary.empty)(append) -> fc }
   }
 }

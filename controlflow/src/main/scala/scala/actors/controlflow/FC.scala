@@ -39,15 +39,14 @@ case class FC[-R] (ret: Cont[R], thr: Cont[Throwable]) {
    * val finFC = fc.fin { resource.close }.toAsyncFunction
    * useResource(finFC)
    * </pre>
+   *
+   * XXX: Should move this functionality to AsyncFunction0 and/or
+   * AsyncFunction1?
    */
   def fin(body: AsyncFunction0[Unit]): FC[R] = {
     // Run body before returning.
-    val finRet: Cont[R] = { (value: R) =>
-      body { () => ret(value) }
-    }
-    val finThr: Cont[Throwable] = { (t: Throwable) =>
-      body { () => thr(t) }
-    }
+    val finRet: Cont[R] = cont1 { (value: R) => body -> fc0 { ret(value) } }
+    val finThr: Cont[Throwable] = cont1 { (t: Throwable) => body -> fc0 { thr(t) } }
     FC(finRet, finThr)
   }
 }

@@ -59,12 +59,9 @@ object AsyncStream {
   def fromAsyncIterator[A](itr: AsyncIterator[A]): AsyncFunction0[AsyncStream[A]] = new AsyncFunction0[AsyncStream[A]] {
     def ->(fc: FC[AsyncStream[A]]): Nothing = {
       import fc.implicitThr
-      itr.hasNext { (hasNext: Boolean) =>
-        if (hasNext) {
-          itr.next { (next: A) =>
-            fc.ret(AsyncStream.cons(next, fromAsyncIterator(itr)))
-          }
-        } else fc.ret(AsyncStream.empty)
+      itr.hasNext -> { (hasNext: Boolean) =>
+        if (hasNext) itr.next -> async1 { (next: A) => AsyncStream.cons(next, fromAsyncIterator(itr)) } -> fc
+        else fc.ret(AsyncStream.empty)
       }
     }
   }
@@ -103,7 +100,7 @@ trait AsyncStream[+A] {
         import fc.implicitThr
         // XXX: Consider storing AsyncFuture with current value,
         // to avoid eager loading.
-        current.asyncTail { (tl: AsyncStream[A]) =>
+        current.asyncTail -> { (tl: AsyncStream[A]) =>
           val result = current.head
           current = tl
           fc.ret(result)
@@ -136,9 +133,7 @@ trait AsyncStream[+A] {
     
     def head = AsyncStream.this.head
 
-    def tail = {
-      fc: FC[AsyncStream[A]] => AsyncStream.this.asyncTail(fc)
-    }.toFunction.apply.toStream
+    def tail = AsyncStream.this.asyncTail.toFunction.apply.toStream
     
     protected def addDefinedElems(buf: StringBuilder, prefix: String): StringBuilder =
       AsyncStream.this.addDefinedElems(buf, prefix)
@@ -165,10 +160,10 @@ trait AsyncStream[+A] {
       def toReversedList(s: AsyncStream[A], accum: List[A]): AsyncFunction0[List[A]] = new AsyncFunction0[List[A]] {
         def ->(fc2: FC[List[A]]): Nothing = {
           if (s.isEmpty) fc2.ret(accum)
-          else s.asyncTail { tl: AsyncStream[A] => toReversedList(tl, s.head :: accum)(fc2) }
+          else s.asyncTail -> { tl: AsyncStream[A] => toReversedList(tl, s.head :: accum) -> fc2 }
         }
       }
-      toReversedList(AsyncStream.this, Nil) { reversed: List[A] => fc.ret(reversed.reverse) }
+      toReversedList(AsyncStream.this, Nil) -> async1 { (_: List[A]).reverse } -> fc
     }
   }
 
@@ -178,31 +173,33 @@ trait AsyncStream[+A] {
    * continuation.
    */
   def asyncMap[B](f: AsyncFunction1[A, B]) = new AsyncFunction0[AsyncStream[B]] {
-    def ->(fc: FC[AsyncStream[B]]): Nothing = AsyncStream.fromAsyncIterator(asyncElements.asyncMap(f))(fc)
+    def ->(fc: FC[AsyncStream[B]]): Nothing = AsyncStream.fromAsyncIterator(asyncElements.asyncMap(f)) -> fc
   }
 
   def asyncFlatMap[B](f: AsyncFunction1[A, AsyncStream[B]]) = new AsyncFunction0[AsyncStream[B]] {
     def ->(fc: FC[AsyncStream[B]]): Nothing = {
       import fc.implicitThr
-      val itrF: AsyncFunction1[A, AsyncIterator[B]] = { (a: A, fc: FC[AsyncIterator[B]]) =>
-        f(a) { (bStream: AsyncStream[B]) =>
-          fc.ret(bStream.asyncElements)
+      val itrF: AsyncFunction1[A, AsyncIterator[B]] = new AsyncFunction1[A, AsyncIterator[B]] {
+        def apply(a: A) = new AsyncFunction0[AsyncIterator[B]] {
+          def ->(iterFC: FC[AsyncIterator[B]]) = {
+            f(a) -> async1 { (bStream: AsyncStream[B]) => bStream.asyncElements } -> iterFC
+          }
         }
       }
-      AsyncStream.fromAsyncIterator(asyncElements.asyncFlatMap(itrF))(fc)
+      AsyncStream.fromAsyncIterator(asyncElements.asyncFlatMap(itrF)) -> fc
     }
   } 
  
   def asyncFilter(p: AsyncFunction1[A, Boolean]) = new AsyncFunction0[AsyncStream[A]] {
-    def ->(fc: FC[AsyncStream[A]]): Nothing = AsyncStream.fromAsyncIterator(asyncElements.asyncFilter(p))(fc)
+    def ->(fc: FC[AsyncStream[A]]): Nothing = AsyncStream.fromAsyncIterator(asyncElements.asyncFilter(p)) -> fc
   }
   
   def asyncForeach(f: AsyncFunction1[A, Unit]) = new AsyncFunction0[Unit] {
-    def ->(fc: FC[Unit]): Nothing = asyncElements.asyncForeach(f)(fc)
+    def ->(fc: FC[Unit]): Nothing = asyncElements.asyncForeach(f) -> fc
   }
 
   def asyncFoldLeft[B](z: B)(op: AsyncFunction1[(B, A), B]) = new AsyncFunction0[B] {
-    def ->(fc: FC[B]): Nothing = asyncElements.asyncFoldLeft(z)(op)(fc)
+    def ->(fc: FC[B]): Nothing = asyncElements.asyncFoldLeft(z)(op) -> fc
   }
   /**
    * Concatenate two streams. The second stream is made available as
@@ -212,9 +209,9 @@ trait AsyncStream[+A] {
   def asyncAppend[B >: A](restGetter: AsyncFunction0[AsyncStream[B]]): AsyncFunction0[AsyncStream[B]] = new AsyncFunction0[AsyncStream[B]] {
     def ->(fc: FC[AsyncStream[B]]): Nothing = {
       import fc.implicitThr
-      if (isEmpty) restGetter(fc)
+      if (isEmpty) restGetter -> fc
       else fc.ret(AsyncStream.cons(head, { fc2: FC[AsyncStream[B]] =>
-        asyncTail { tl: AsyncStream[A] => tl.asyncAppend(restGetter)(fc2) }
+        asyncTail -> fc1 { tl: AsyncStream[A] => tl.asyncAppend(restGetter) -> fc2 }
       }))
     }
   }

@@ -33,8 +33,8 @@ class AsyncStreamBuilder[A] {
       implicit val implicitThr: Cont[Throwable] = cont({ t: Throwable =>
         oldTail.set(Throw(t))
       })(thrower)
-      getStream { stream: AsyncStream[A] =>
-        stream.asyncAppend(newTail) { combined: AsyncStream[A] =>
+      getStream -> fc1 { stream: AsyncStream[A] =>
+        stream.asyncAppend(newTail) -> fc1 { combined: AsyncStream[A] =>
           oldTail.set(Return(combined))
         }
       }

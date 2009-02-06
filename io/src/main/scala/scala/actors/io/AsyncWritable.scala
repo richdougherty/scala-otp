@@ -17,12 +17,12 @@ trait AsyncWritable {
   protected def internalWrite(binary: Binary)(fc: FC[Unit]): Nothing
 
   final def asyncWrite(binary: Binary)(fc: FC[Unit]): Nothing = {
-    writeLock.syn(internalWrite(binary)(_: FC[Unit]))(fc)
+    writeLock.syn(internalWrite(binary)(_: FC[Unit])) -> fc
   }
 
   final private def asyncWrite(as: AsyncStream[Binary])(fc: FC[Unit]): Nothing = {
     (writeLock.syn { (fc2: FC[Unit]) =>
-      as.asyncForeach(internalWrite(_: Binary)(_: FC[Unit]))(fc2)
-    })(fc)
+      as.asyncForeach(internalWrite(_: Binary)(_: FC[Unit])) -> fc2
+    }) -> fc
   }
 }

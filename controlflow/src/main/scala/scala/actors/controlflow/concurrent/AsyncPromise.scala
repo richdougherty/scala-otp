@@ -29,9 +29,7 @@ class AsyncPromise[A] extends AsyncFuture[A] {
         state = Set(result)
         val resultFunction = result.toAsyncFunction
         for (fc <- pending) {
-          Actor.actor {
-            resultFunction(fc)
-          }
+          Actor.actor { resultFunction -> fc }
         }
       }
       case s => throw new IllegalStateException(s.toString)

@@ -26,13 +26,6 @@ trait AsyncFunction0[+R] extends AnyRef {
   def ->[A](g: AsyncFunction1[R, A]): AsyncFunction0[A] = andThen(g)
 
   /**
-   * Apply this function. The result will be provided via one of the given
-   * <code>FC</code>'s continuations: either <code>ret</code> or
-   * <code>thr</code>.
-   */
-  final def apply(fc: FC[R]): Nothing = ->(fc)
-
-  /**
    * Create a function which executes this function then passes its result to
    * the given function.
    */
@@ -40,7 +33,7 @@ trait AsyncFunction0[+R] extends AnyRef {
     def ->(fc: FC[A]) = {
       assert(fc != null)
       import fc.implicitThr
-      AsyncFunction0.this.apply { result: R => g(result)(fc) }
+      AsyncFunction0.this -> fc1 { result: R => g(result) -> fc }
     }
   }
 
@@ -51,9 +44,9 @@ trait AsyncFunction0[+R] extends AnyRef {
   private def applyInActor: Channel[Any] = {
     val channel = new Channel[Any](Actor.self)
     Actor.actor {
-      AsyncFunction0.this.apply { result: FunctionResult[R] =>
+      AsyncFunction0.this -> resultFC({ result: FunctionResult[R] =>
         channel ! result
-      }
+      })
     }
     channel
   }
@@ -79,7 +72,7 @@ trait AsyncFunction0[+R] extends AnyRef {
       assert(fc != null)
       val channel = AsyncFunction0.this.applyInActor
       channel.reactWithin(msec) {
-        case msg: Any => messageResult(msg).toAsyncFunction.apply(fc)
+        case msg: Any => messageResult(msg).toAsyncFunction -> fc
       }
     }
   }
