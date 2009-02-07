@@ -39,10 +39,12 @@ object ControlFlow {
       // XXX: Could call fc.ret() outside try, to avoid spurious catch of actor exception.
       try { fc.ret(body) } catch { case t if !isControlFlowThrowable(t) => fc.thr(t) }
     }
+    // XXX: Implement efficient toRichFunction
   }
 
   def async1[T1, R](f: T1 => R): AsyncFunction1[T1, R] = new AsyncFunction1[T1, R] {
     def apply(v1: T1) =  async0 { f(v1) }
+    // XXX: Implement efficient toRichFunction
   }
 
   // Continuations
