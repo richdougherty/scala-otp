@@ -165,7 +165,7 @@ object ControlFlow {
    * val fc: FC[R] = (result: FunctionResult[R]) => channel ! result
    * </pre>
    */
-  implicit def resultFC[R](f: FunctionResult[R] => Unit): FC[R] = {
+  def resultFC[R](f: FunctionResult[R] => Unit): FC[R] = {
     // Introduce 'thrower' to avoid recursive use of 'thr'.
     val thr: Cont[Throwable] = cont((t: Throwable) => f(Throw(t)))(thrower)
     implicit val implicitThr = thr
