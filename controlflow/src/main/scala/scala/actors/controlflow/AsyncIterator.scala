@@ -19,7 +19,7 @@ trait AsyncIterator[+A] {
   
   def asyncMap[B](f: AsyncFunction1[A, B]) = new AsyncIterator[B] {
     def hasNext = AsyncIterator.this.hasNext
-    def next = AsyncIterator.this.next -> f
+    def next = AsyncIterator.this.next / f
   }
 
   def asyncFlatMap[B](f: AsyncFunction1[A, AsyncIterator[B]]): AsyncIterator[B] = new AsyncIterator[B] {
@@ -35,7 +35,7 @@ trait AsyncIterator[+A] {
             else {
               AsyncIterator.this.hasNext -> fc1 { (origHasNext: Boolean) =>
                 if (origHasNext) {
-                  AsyncIterator.this.next -> f -> fc1 { (fResult: AsyncIterator[B]) =>
+                  AsyncIterator.this.next / f -> fc1 { (fResult: AsyncIterator[B]) =>
                     cur = fResult
                     origHasNextHandler -> fc
                   }
@@ -96,7 +96,7 @@ trait AsyncIterator[+A] {
     }
 
     def hasNext = {
-      loadNext -> async1 { _: Unit =>
+      loadNext / async1 { _: Unit =>
         loaded match {
           case Some(_) => true
           case None => false
@@ -104,7 +104,7 @@ trait AsyncIterator[+A] {
       }
     }
     def next = {
-      loadNext -> async1 { _: Unit =>
+      loadNext / async1 { _: Unit =>
         loaded match {
           case Some(element) => {
             loaded = None

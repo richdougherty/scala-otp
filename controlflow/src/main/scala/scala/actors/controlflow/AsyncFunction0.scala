@@ -15,7 +15,7 @@ trait AsyncFunction0[+R] extends AnyRef {
    */
   def ->(fc: FC[R]): Nothing
 
-  def ->[A](g: AsyncFunction0[A]): AsyncFunction0[A] = new AsyncFunction0[A] {
+  def /[A](g: AsyncFunction0[A]): AsyncFunction0[A] = new AsyncFunction0[A] {
     def ->(fc: FC[A]) = {
       assert(fc != null)
       import fc.implicitThr
@@ -23,19 +23,19 @@ trait AsyncFunction0[+R] extends AnyRef {
     }
   }
 
-  def ->[A](g: AsyncFunction1[R, A]): AsyncFunction0[A] = andThen(g)
-
-  /**
-   * Create a function which executes this function then passes its result to
-   * the given function.
-   */
-  def andThen[A](g: AsyncFunction1[R, A]) = new AsyncFunction0[A] {
+  def /[A](g: AsyncFunction1[R, A]): AsyncFunction0[A] = new AsyncFunction0[A] {
     def ->(fc: FC[A]) = {
       assert(fc != null)
       import fc.implicitThr
       AsyncFunction0.this -> fc1 { result: R => g(result) -> fc }
     }
   }
+
+  /**
+   * Create a function which executes this function then passes its result to
+   * the given function.
+   */
+  def andThen[A](g: AsyncFunction1[R, A]) = /(g)
 
   /**
    * Apply this function in a separate actor. sending the function's result
@@ -98,7 +98,7 @@ trait AsyncFunction0[+R] extends AnyRef {
   def map[A](f: R => A): AsyncFunction0[A] = new AsyncFunction0[A] {
     def ->(fc: FC[A]) = {
       import fc.implicitThr
-      AsyncFunction0.this -> async1 { f(_: R) } -> fc
+      AsyncFunction0.this / async1 { f(_: R) } -> fc
     }
   }
 

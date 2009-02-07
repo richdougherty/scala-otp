@@ -62,6 +62,6 @@ class AsyncLock {
    * </pre>
    */
   def syn[R](f: AsyncFunction0[R]) = new AsyncFunction0[R] {
-    def ->(fc: FC[R]) = lock -> f -> fc.fin(async0 { unlock })
+    def ->(fc: FC[R]) = lock / f -> fc.fin(async0 { unlock })
   }
 }

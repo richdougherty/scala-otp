@@ -60,7 +60,7 @@ object AsyncStream {
     def ->(fc: FC[AsyncStream[A]]): Nothing = {
       import fc.implicitThr
       itr.hasNext -> { (hasNext: Boolean) =>
-        if (hasNext) itr.next -> async1 { (next: A) => AsyncStream.cons(next, fromAsyncIterator(itr)) } -> fc
+        if (hasNext) itr.next / async1 { (next: A) => AsyncStream.cons(next, fromAsyncIterator(itr)) } -> fc
         else fc.ret(AsyncStream.empty)
       }
     }
@@ -163,7 +163,7 @@ trait AsyncStream[+A] {
           else s.asyncTail -> { tl: AsyncStream[A] => toReversedList(tl, s.head :: accum) -> fc2 }
         }
       }
-      toReversedList(AsyncStream.this, Nil) -> async1 { (_: List[A]).reverse } -> fc
+      toReversedList(AsyncStream.this, Nil) / async1 { (_: List[A]).reverse } -> fc
     }
   }
 
@@ -182,7 +182,7 @@ trait AsyncStream[+A] {
       val itrF: AsyncFunction1[A, AsyncIterator[B]] = new AsyncFunction1[A, AsyncIterator[B]] {
         def apply(a: A) = new AsyncFunction0[AsyncIterator[B]] {
           def ->(iterFC: FC[AsyncIterator[B]]) = {
-            f(a) -> async1 { (bStream: AsyncStream[B]) => bStream.asyncElements } -> iterFC
+            f(a) / async1 { (bStream: AsyncStream[B]) => bStream.asyncElements } -> iterFC
           }
         }
       }

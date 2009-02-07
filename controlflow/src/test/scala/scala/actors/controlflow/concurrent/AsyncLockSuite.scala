@@ -29,7 +29,7 @@ class AsyncLockSuite extends TestNGSuite with Checkers {
         println("Creating lock.")
         val l = new AsyncLock
         println("Acquiring lock.")
-        l.lock -> async0 {
+        l.lock / async0 {
           println("Releasing lock.")
           l.unlock
         } -> fc
@@ -49,7 +49,7 @@ class AsyncLockSuite extends TestNGSuite with Checkers {
         println("Creating lock.")
         val l = new AsyncLock
         println("Acquiring lock.")
-        l.lock -> async0 {
+        l.lock / async0 {
           println("Releasing lock.")
           l.unlock
         } -> fc
