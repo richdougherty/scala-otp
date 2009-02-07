@@ -210,9 +210,12 @@ trait AsyncStream[+A] {
     def ->(fc: FC[AsyncStream[B]]): Nothing = {
       import fc.implicitThr
       if (isEmpty) restGetter -> fc
-      else fc.ret(AsyncStream.cons(head, { fc2: FC[AsyncStream[B]] =>
-        asyncTail -> fc1 { tl: AsyncStream[A] => tl.asyncAppend(restGetter) -> fc2 }
-      }))
+      else {
+        val appendTail = new AsyncFunction1[AsyncStream[A], AsyncStream[B]] {
+          def apply(tl: AsyncStream[A]) = tl.asyncAppend(restGetter)
+        }
+        fc.ret(AsyncStream.cons(head, asyncTail / appendTail))
+      }
     }
   }
 }

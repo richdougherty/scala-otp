@@ -25,36 +25,30 @@ class AsyncLockSuite extends TestNGSuite with Checkers {
   def testSingle = {
     asyncTest(10000) {
       implicit val implicitThr = thrower
-      val af: AsyncFunction0[Unit] = { (fc: FC[Unit]) =>
-        println("Creating lock.")
-        val l = new AsyncLock
-        println("Acquiring lock.")
-        l.lock / async0 {
-          println("Releasing lock.")
-          l.unlock
-        } -> fc
-      }
-      af.toFunction.apply
+      println("Creating lock.")
+      val l = new AsyncLock
+      println("Acquiring lock.")
+      (l.lock / async0 {
+        println("Releasing lock.")
+        l.unlock
+      }).toFunction.apply
     }
   }
 
   @Test
   def testParallel = {
     asyncTest(10000) {
-      // run 100 actors, locking and unlocking 1000 times or for 5 seconds
+      // XXX: run 100 actors, locking and unlocking 1000 times or for 5 seconds
       // for each, collect the time post-lock and pre-unlock times
       // after the run, aggregate the results and check there are no overlaps
       implicit val implicitThr = thrower
-      val af: AsyncFunction0[Unit] = { (fc: FC[Unit]) =>
-        println("Creating lock.")
-        val l = new AsyncLock
-        println("Acquiring lock.")
-        l.lock / async0 {
-          println("Releasing lock.")
-          l.unlock
-        } -> fc
-      }
-      af.toFunction.apply
+      println("Creating lock.")
+      val l = new AsyncLock
+      println("Acquiring lock.")
+      (l.lock / async0 {
+        println("Releasing lock.")
+        l.unlock
+      }).toFunction.apply
     }
   }
 }

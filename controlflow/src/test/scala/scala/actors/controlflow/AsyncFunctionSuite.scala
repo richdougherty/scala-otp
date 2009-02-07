@@ -21,7 +21,7 @@ import scala.actors.controlflow.ControlFlowTestHelper._
  */
 class AsyncFunctionSuite extends TestNGSuite with Checkers {
 
-  val addOne: AsyncFunction1[Int, Int] = { (x: Int, fc: FC[Int]) => fc.ret(x + 1) }
+  val addOne: AsyncFunction1[Int, Int] = async1 { (_: Int) + 1 }
   val double: AsyncFunction1[Int, Int] = { x: Int => x * 2 }.toAsyncFunction
   val two: AsyncFunction0[Int] = Return(2).toAsyncFunction
 

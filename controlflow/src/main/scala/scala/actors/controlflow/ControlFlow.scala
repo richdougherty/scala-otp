@@ -184,7 +184,7 @@ object ControlFlow {
    * val af: AsyncFunction0[R] => (fc: FC[R]) => fc.ret(...)
    * </pre>
    */
-  implicit def asyncFunction0[R](f: Function1[FC[R], Nothing]): AsyncFunction0[R] = new AsyncFunction0[R] {
+   def asAsync0[R](f: Function1[FC[R], Nothing]): AsyncFunction0[R] = new AsyncFunction0[R] {
     def ->(fc: FC[R]) = {
       assert(fc != null)
       try {
@@ -203,7 +203,7 @@ object ControlFlow {
    * val af: AsyncFunction1[T1, R] => (v1: T1, fc: FC[R]) => fc.ret(...)
    * </pre>
    */
-  implicit def asyncFunction1[T1, R](f: Function2[T1, FC[R], Nothing]): AsyncFunction1[T1, R] = new AsyncFunction1[T1, R] {
+  def asAsync1[T1, R](f: Function2[T1, FC[R], Nothing]): AsyncFunction1[T1, R] = new AsyncFunction1[T1, R] {
     def apply(v1: T1) = new AsyncFunction0[R] {
       def ->(fc: FC[R]) = {
         assert(fc != null)

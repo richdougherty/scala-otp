@@ -32,7 +32,7 @@ class IoSuite extends TestNGSuite with Checkers {
     val binary = Binary.fromString("Hello ") ++ Binary.fromString("world!")
     val address = new InetSocketAddress("localhost", 12345)
 
-    val result = { fc: FC[Binary] =>
+    val result = asAsync0 { fc: FC[Binary] =>
       import fc.implicitThr
       val selector = new AsyncSelector
       val ssc = ServerSocketChannel.open
