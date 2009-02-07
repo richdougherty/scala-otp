@@ -30,7 +30,7 @@ class AsyncStreamBuilder[A] {
     val oldTail = tail
     val newTail = new AsyncPromise[AsyncStream[A]]
     Actor.actor {
-      implicit val implicitThr: Cont[Throwable] = cont({ t: Throwable =>
+      implicit val implicitThr: Cont[Throwable] = cont1({ t: Throwable =>
         oldTail.set(Throw(t))
       })(thrower)
       getStream -> fc1 { stream: AsyncStream[A] =>

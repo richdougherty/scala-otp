@@ -76,31 +76,6 @@ object ControlFlow {
   }
 
   /**
-   * Creates a continuation which, when applied, will run the given
-   * function in a reaction of the then-current actor. If the function
-   * throws an exception, then this will be passed to <code>thr</code>.
-   *
-   * <pre>
-   * implicit val implicitThr = thrower
-   * val c: Cont[R] = (value: R) => println("Called: " + value)
-   * </pre>
-   */
-  implicit def cont[R](f: R => Unit)(implicit thr: Cont[Throwable]): Cont[R] = {
-    new Cont[R] {
-      def apply(value: R): Nothing = {
-        inReaction {
-          try {
-            f(value)
-            Actor.exit
-          } catch {
-            case t if !isControlFlowThrowable(t) => thr(t)
-          }
-        }
-      }
-    }
-  }
-
-  /**
    * Avoid overflowing the stack by running the given code in a reaction.
    * There may be a more efficient way to do this.
    */
@@ -139,10 +114,10 @@ object ControlFlow {
    */
   def resultFC[R](f: FunctionResult[R] => Unit): FC[R] = {
     // Introduce 'thrower' to avoid recursive use of 'thr'.
-    val thr: Cont[Throwable] = cont((t: Throwable) => f(Throw(t)))(thrower)
+    val thr: Cont[Throwable] = cont1((t: Throwable) => f(Throw(t)))(thrower)
     implicit val implicitThr = thr
     val retF = (r: R) => f(Return(r))
-    val ret: Cont[R] = cont(retF)(thr)
+    val ret: Cont[R] = cont1(retF)(thr)
     FC(ret, thr)
   }
 
