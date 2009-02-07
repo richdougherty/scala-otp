@@ -128,36 +128,6 @@ object ControlFlow {
   // FCs
 
   /**
-   * Creates an FC with a return continuation, which, when applied, will run the
-   * given function in a reaction of the then-current actor. If the function
-   * throws an exception, then this will be passed to <code>thr</code>.
-   *
-   * <pre>
-   * implicit val implicitThr = thrower
-   * val fc: FC[Unit] = () => println("Called")
-   * </pre>
-   */
-  implicit def reactionFC(f: () => Unit)(implicit thr: Cont[Throwable]): FC[Unit] = {
-    val ret: Cont[Unit] = cont(f)(thr)
-    FC(ret, thr)
-  }
-
-  /**
-   * Creates an FC with a return continuation, which, when applied, will run the
-   * given function in a reaction of the then-current actor. If the function
-   * throws an exception, then this will be passed to <code>thr</code>.
-   *
-   * <pre>
-   * implicit val implicitThr = thrower
-   * val fc: FC[R] = (value: R) => println("Called: " + value)
-   * </pre>
-   */
-  implicit def reactionFC[R](f: R => Unit)(implicit thr: Cont[Throwable]): FC[R] = {
-    val ret: Cont[R] = cont(f)(thr)
-    FC(ret, thr)
-  }
-  
-  /**
    * Creates an FC with continuations that supply a <code>FunctionResult</code>
    * to the given function.
    *

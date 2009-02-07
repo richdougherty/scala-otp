@@ -20,7 +20,7 @@ trait AsyncReadable {
   private def nextReadStream: AsyncFunction0[AsyncStream[Binary]] = new AsyncFunction0[AsyncStream[Binary]] {
     def ->(fc: FC[AsyncStream[Binary]]) = {
       import fc.implicitThr
-      internalRead(defaultReadLength) -> { binary: Binary =>
+      internalRead(defaultReadLength) -> fc1 { binary: Binary =>
         if (binary.isEmpty) {
           fc.ret(AsyncStream.empty)
         } else {

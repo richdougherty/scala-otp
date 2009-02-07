@@ -29,7 +29,7 @@ trait AsyncWritableByteChannel extends AsyncWritable {
           channel.write(buffers, offset, buffers.length) match {
             case 0 => {
               // Write failed, use selector to callback when ready.
-              asyncSelector.register(channel, AsyncSelector.Write) -> { () => tryWrite(buffers, offset) }
+              asyncSelector.register(channel, AsyncSelector.Write) -> fc0 { tryWrite(buffers, offset) }
             }
             case _ => {
               //println("AsyncWritableByteChannel: wrote "+length+" bytes.")

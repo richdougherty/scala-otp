@@ -59,7 +59,7 @@ object AsyncStream {
   def fromAsyncIterator[A](itr: AsyncIterator[A]): AsyncFunction0[AsyncStream[A]] = new AsyncFunction0[AsyncStream[A]] {
     def ->(fc: FC[AsyncStream[A]]): Nothing = {
       import fc.implicitThr
-      itr.hasNext -> { (hasNext: Boolean) =>
+      itr.hasNext -> fc1 { (hasNext: Boolean) =>
         if (hasNext) itr.next / async1 { (next: A) => AsyncStream.cons(next, fromAsyncIterator(itr)) } -> fc
         else fc.ret(AsyncStream.empty)
       }
@@ -100,7 +100,7 @@ trait AsyncStream[+A] {
         import fc.implicitThr
         // XXX: Consider storing AsyncFuture with current value,
         // to avoid eager loading.
-        current.asyncTail -> { (tl: AsyncStream[A]) =>
+        current.asyncTail -> fc1 { tl: AsyncStream[A] =>
           val result = current.head
           current = tl
           fc.ret(result)
@@ -160,7 +160,7 @@ trait AsyncStream[+A] {
       def toReversedList(s: AsyncStream[A], accum: List[A]): AsyncFunction0[List[A]] = new AsyncFunction0[List[A]] {
         def ->(fc2: FC[List[A]]): Nothing = {
           if (s.isEmpty) fc2.ret(accum)
-          else s.asyncTail -> { tl: AsyncStream[A] => toReversedList(tl, s.head :: accum) -> fc2 }
+          else s.asyncTail -> fc1 { tl: AsyncStream[A] => toReversedList(tl, s.head :: accum) -> fc2 }
         }
       }
       toReversedList(AsyncStream.this, Nil) / async1 { (_: List[A]).reverse } -> fc
