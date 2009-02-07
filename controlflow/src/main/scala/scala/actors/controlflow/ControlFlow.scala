@@ -47,34 +47,6 @@ object ControlFlow {
     // XXX: Implement efficient toRichFunction
   }
 
-  // Continuations
-
-  /**
-   * Creates a continuation which, when applied, will run the given
-   * function in a reaction of the then-current actor. If the function
-   * throws an exception, then this will be passed to <code>thr</code>.
-   *
-   * <pre>
-   * implicit val implicitThr = thrower
-   * val c: Cont[Unit] = () => println("Called")
-   * </pre>
-   */
-  implicit def cont(f: () => Unit)(implicit thr: Cont[Throwable]): Cont[Unit] = {
-    assert(thr != null)
-    new Cont[Unit] {
-      def apply(value: Unit) = {
-        inReaction {
-          try {
-            f()
-            Actor.exit
-          } catch {
-            case t if !isControlFlowThrowable(t) => thr(t)
-          }
-        }
-      }
-    }
-  }
-
   /**
    * Avoid overflowing the stack by running the given code in a reaction.
    * There may be a more efficient way to do this.
