@@ -15,6 +15,14 @@ trait AsyncFunction1[-T1, +R] extends AnyRef {
    */
   def apply(v1: T1): AsyncFunction0[R]
 
+  def /[A](g: AsyncFunction0[A]) = new AsyncFunction1[T1, A] {
+    def apply(v1: T1) = AsyncFunction1.this.apply(v1) / g
+  }
+
+  def /[A](g: AsyncFunction1[R, A]) = new AsyncFunction1[T1, A] {
+    def apply(v1: T1) = AsyncFunction1.this.apply(v1) / g
+  }
+
   /**
    * Create a function which executes the given function then passes its result
    * to this function.

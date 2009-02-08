@@ -27,7 +27,6 @@ class AsyncFunctionSuite extends TestNGSuite with Checkers {
 
   @Test
   def testAsyncFunction1 = asyncTest(10000) {
-    println("testAsyncFunction1")
     assert(addOne.toFunction.apply(2) == 3)
     assert(double.toFunction.apply(2) == 4)
     assert((addOne andThen double).toFunction.apply(2) == 6)
@@ -38,7 +37,6 @@ class AsyncFunctionSuite extends TestNGSuite with Checkers {
   
   @Test
   def testAsyncFunction0 = asyncTest(10000) {
-    println("testAsyncFunction0")
     assert(two.toFunction.apply == 2)
     assert((two andThen addOne).toFunction.apply == 3)
     assert((two andThen double).toFunction.apply == 4)

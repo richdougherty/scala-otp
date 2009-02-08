@@ -31,6 +31,16 @@ trait AsyncFunction0[+R] extends AnyRef {
     }
   }
 
+  // XXX: Experimental. There's probably a better way to do this.
+  // XXX: Needs better name, unfortunately two /s is a comment.
+  def /-[A](g: AsyncFunction1[R, AsyncFunction0[A]]) = new AsyncFunction0[A] {
+    def ->(fc: FC[A]) = {
+      assert(fc != null)
+      import fc.implicitThr
+      AsyncFunction0.this -> fc1 { result: R => g(result) -> fc1 { h: AsyncFunction0[A] => h -> fc } }
+    }
+  }
+
   /**
    * Create a function which executes this function then passes its result to
    * the given function.
