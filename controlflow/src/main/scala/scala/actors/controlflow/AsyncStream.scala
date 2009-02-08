@@ -167,6 +167,14 @@ trait AsyncStream[+A] {
     }
   }
 
+  def append[B >: A](rest: => AsyncStream[B]): AsyncStream[B] =
+    if (isEmpty) rest
+    else AsyncStream.cons(head, asyncTail / async1 { tail: AsyncStream[A] => tail append rest })
+
+  def map[B](f: A => B): AsyncStream[B] =
+    if (isEmpty) AsyncStream.empty
+    else AsyncStream.cons(f(head), asyncTail / async1 { tail: AsyncStream[A] => tail.map(f) })
+
   /**
    * Perform a 'map' operation on the stream, using the given
    * AsyncFunction1. The result is returned asynchronously, via a

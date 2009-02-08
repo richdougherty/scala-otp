@@ -1,6 +1,7 @@
 package scala.actors.controlflow
 
 import scala.actors._
+import scala.actors.controlflow.concurrent._
 
 /**
  * Provides useful methods for using asynchronous flow control.
@@ -46,6 +47,8 @@ object ControlFlow {
     def apply(v1: T1) =  async0 { f(v1) }
     // XXX: Implement efficient toRichFunction
   }
+
+  def alazy[A](body: => A) = new AsyncLazyFuture[A](async0(body))
 
   /**
    * Avoid overflowing the stack by running the given code in a reaction.
