@@ -46,5 +46,23 @@ class AsyncFunctionSuite extends TestNGSuite with Checkers {
     assert((two andThen (addOne compose double)).toFunction.apply == 5)
     assert((two andThen (double compose addOne)).toFunction.apply == 6)
   }
+
+  @Test
+  def testForSyntax = asyncTest(10000) {
+    val seq = for (x <- async0 { 1 + 2 };
+                   y <- async0 { x * 2 };
+                   z <- async0 { y + x })
+              yield { z }
+    assert(seq.toFunction.apply == 9)
+  }
+
+  @Test
+  def testForSyntax2 = asyncTest(10000) {
+    val seq = for (_ <- async0 { println("A") };
+                   _ <- asleep(666);
+                   _ <- async0 { println("B") })
+              yield ()
+    seq.toFunction.apply
+  }
   
 }

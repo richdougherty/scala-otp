@@ -50,6 +50,14 @@ object ControlFlow {
 
   def alazy[A](body: => A) = new AsyncLazyFuture[A](async0(body))
 
+  def asleep(ms: Long) = new AsyncFunction0[Unit] {
+    def ->(fc: FC[Unit]) = {
+      Actor.reactWithin(ms) {
+        case TIMEOUT => fc.ret(())
+      }
+    }
+  }
+
   /**
    * Avoid overflowing the stack by running the given code in a reaction.
    * There may be a more efficient way to do this.
