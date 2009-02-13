@@ -58,6 +58,28 @@ object ControlFlow {
     }
   }
 
+  private def wrapPartial[R](f: PartialFunction[Any,R], fc: FC[R]) = new PartialFunction[Any,Unit] {
+    def isDefinedAt(a: Any) = { a == TIMEOUT || f.isDefinedAt(a) }
+    def apply(a: Any): Unit = {
+      if (a == TIMEOUT && !f.isDefinedAt(TIMEOUT)) fc.thr(new TimeoutException)
+      try {
+        fc.ret(f(a))
+      } catch {
+        case t if !isControlFlowThrowable(t) => fc.thr(t)
+      }
+    }
+  }
+
+  // XXX: Add support for non-self reactions.
+  def areact[R](f: PartialFunction[Any,R]) = new AsyncFunction0[R] {
+    def ->(fc: FC[R]) = Actor.react(wrapPartial(f, fc))
+  }
+
+  // XXX: Add support for non-self reactions.
+  def areactWithin[R](ms: Long)(f: PartialFunction[Any,R]) = new AsyncFunction0[R] {
+    def ->(fc: FC[R]) = Actor.reactWithin(ms)(wrapPartial(f, fc))
+  }
+
   /**
    * Avoid overflowing the stack by running the given code in a reaction.
    * There may be a more efficient way to do this.

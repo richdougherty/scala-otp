@@ -78,4 +78,23 @@ class ControlFlowSuite extends TestNGSuite with Checkers {
     }
   }
 
+  @Test
+  def testAreact = asyncTest(10000) {
+    val caller = Actor.self
+    val adder = Actor.actor {
+      println(Actor.self + ": starting adder")
+      (for (
+        x <- areact { case i: Int => i };
+        _ <- async0 { println(Actor.self + ": Received " + x) };
+        y <- areact { case i: Int => i };
+        _ <- async0 { println(Actor.self + ": Received " + y) };
+        _ <- async0 { caller ! (x + y) })
+        yield ()) -> fc0(())(thrower)
+    }
+    adder ! 1
+    adder ! 2
+    val result = Actor.receive { case i: Int => i }
+    assert(result == 3)
+  }
+
 }
