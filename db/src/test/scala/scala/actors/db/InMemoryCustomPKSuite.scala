@@ -82,7 +82,7 @@ class InMemoryCustomPKSuite extends TestNGSuite {
     DB.removeByPK(pkJonas, person)
     val persons1: List[Person] = DB.findAll(person)
     assert(persons1.size === 2)
-    intercept(classOf[IllegalStateException]) { 
+    intercept(classOf[IllegalStateException]) {
       DB.findByIndex("Jonas", "name", person)
     }
     DB.removeByPK(pkKalle, person)
@@ -90,7 +90,7 @@ class InMemoryCustomPKSuite extends TestNGSuite {
     val persons2: List[Person] = DB.findAll(person)
     assert(persons2.size === 1)
     assert(persons2(0).name === "Sara")
-    intercept(classOf[IllegalStateException]) { 
+    intercept(classOf[IllegalStateException]) {
       DB.findByIndex("Kalle", "name", person)
     }
     assert(true === true)
@@ -132,7 +132,7 @@ class InMemoryCustomPKSuite extends TestNGSuite {
     assert(persons.exists(_.name == "Sara"))
 
     assert(!persons.exists(_.name == "Kalle"))
-    intercept(classOf[IllegalStateException]) { 
+    intercept(classOf[IllegalStateException]) {
       DB.findByIndex("Kalle", "name", person)
     }
 

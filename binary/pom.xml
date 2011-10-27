@@ -5,7 +5,7 @@
   <artifactId>scala-binary</artifactId>
 
   <name>Scala Binary Module</name>
-  <description>Implements an Erlang-style immutable Binary type. This type can be used as a safer alternative to byte arrays.</description> 
+  <description>Implements an Erlang-style immutable Binary type. This type can be used as a safer alternative to byte arrays.</description>
 
   <parent>
     <groupId>org.scala-libs</groupId>

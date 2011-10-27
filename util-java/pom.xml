@@ -5,7 +5,7 @@
   <artifactId>scala-util-java</artifactId>
 
   <name>Scala Actors Java Util Module</name>
-  <description></description> 
+  <description></description>
 
   <parent>
     <groupId>org.scala-libs</groupId>
@@ -18,7 +18,7 @@
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest</artifactId>

@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Primary key base class.
- * 
+ *
  * @author <a href="http://jonasboner.com">Jonas Bon&#233;r</a>
  */
 @serializable
@@ -19,7 +19,7 @@ case class PK(override val value: Long) extends Index {
 }
 
 /**
- * Implicit definitions converting Scala primitive types to Indexes and vice versa 
+ * Implicit definitions converting Scala primitive types to Indexes and vice versa
  * (also handles PK conversions: PK <--> Long)
  * <p/>
  * Import into user classes in order to avoid explicit Index management:

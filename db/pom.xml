@@ -5,7 +5,7 @@
   <artifactId>scala-db</artifactId>
 
   <name>Scala Actors DB Module</name>
-  <description>In-memory replicating database for Scala (similar to Erlang's Mnesia).</description> 
+  <description>In-memory replicating database for Scala (similar to Erlang's Mnesia).</description>
 
   <parent>
     <groupId>org.scala-libs</groupId>

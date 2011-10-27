@@ -20,7 +20,7 @@ case class Config(storageStrategy: StorageStrategy) {
   val schema = new CovariantMap[Class[_], Table]()
 }
 @serializable
-abstract case class StorageStrategy extends DBMessage 
+abstract case class StorageStrategy extends DBMessage
 @serializable
 case class EvictableStorageStrategy(timeout: Long) extends StorageStrategy
 @serializable
@@ -36,7 +36,7 @@ case object ReplicatedEventuallyConsistentStorageStrategy extends StorageStrateg
 // --- PRIMARY KEY GENERATION SCHEME MESSAGES ---
 // ----------------------------------------------
 @serializable
-abstract case class PrimaryKeySequenceScheme extends DBMessage 
+abstract case class PrimaryKeySequenceScheme extends DBMessage
 @serializable
 case class GeneratePrimaryKeySequence extends PrimaryKeySequenceScheme
 @serializable
@@ -50,7 +50,7 @@ case class CustomPrimaryKeySequence extends PrimaryKeySequenceScheme
 case class CreateTableWithGeneratedPK(table: Class[_], pkName: String) extends DBMessage
 /** Reply message: Status(..) */
 @serializable
-case class CreateTableWithCustomPK(table: Class[_], pkName: String, pkIndexFactory: (Any) => Index) extends DBMessage 
+case class CreateTableWithCustomPK(table: Class[_], pkName: String, pkIndexFactory: (Any) => Index) extends DBMessage
 
 /** Reply message: Status(..) */
 @serializable

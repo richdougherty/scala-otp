@@ -3,12 +3,12 @@ package scala.actors.controlflow
 import scala.actors.controlflow.ControlFlow._
 
 object AsyncIterator {
-  
+
   val empty = new AsyncIterator[Nothing] {
     def hasNext = async0 { false }
     def next = async0 { throw new NoSuchElementException("next on empty iterator") }
   }
-  
+
 }
 
 trait AsyncIterator[+A] {
@@ -16,7 +16,7 @@ trait AsyncIterator[+A] {
   def hasNext: AsyncFunction0[Boolean]
 
   def next: AsyncFunction0[A]
-  
+
   def asyncMap[B](f: AsyncFunction1[A, B]) = new AsyncIterator[B] {
     def hasNext = AsyncIterator.this.hasNext
     def next = AsyncIterator.this.next / f
@@ -60,8 +60,8 @@ trait AsyncIterator[+A] {
         Throw(new NoSuchElementException("next on empty iterator")).toAsyncFunction
       )
   }
-  
-  
+
+
   def asyncFilter(p: AsyncFunction1[A, Boolean]) = new AsyncIterator[A] {
 
     // XXX: Replace with AsyncLazyFuture
@@ -115,7 +115,7 @@ trait AsyncIterator[+A] {
       }
     }
   }
- 
+
   def asyncForeach(f: AsyncFunction1[A, Unit]): AsyncFunction0[Unit] = new AsyncFunction0[Unit] {
     def ->(fc: FC[Unit]): Nothing = {
       import fc.implicitThr

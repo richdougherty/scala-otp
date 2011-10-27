@@ -12,7 +12,7 @@ import scala.collection.jcl.Conversions._
 trait AsyncReadableByteChannel extends AsyncReadable {
   val channel: SelectableChannel with ReadableByteChannel
   val asyncSelector: AsyncSelector
-  
+
   // returns zero-length Binary when reaches end
   final protected def internalRead(bufferLength: Int) = new AsyncFunction0[Binary] {
     def ->(fc: FC[Binary]): Nothing = {
@@ -25,7 +25,7 @@ trait AsyncReadableByteChannel extends AsyncReadable {
             case -1 => fc.ret(Binary.empty)
             case 0 => {
               // No data available yet: set callback.
-              //println("No bytes for reading: awaiting callback.") 
+              //println("No bytes for reading: awaiting callback.")
               asyncSelector.register(channel, AsyncSelector.Read) -> fc0 { tryRead }
             }
             case length => {

@@ -83,7 +83,7 @@ class InMemoryGeneratedPKSuite extends TestNGSuite {
 
     val persons1: List[Person] = DB.findAll(person)
     assert(persons1.size === 2)
-    intercept(classOf[IllegalStateException]) { 
+    intercept(classOf[IllegalStateException]) {
       DB.findByIndex("Jonas", "name", person)
     }
 
@@ -92,7 +92,7 @@ class InMemoryGeneratedPKSuite extends TestNGSuite {
     val persons2: List[Person] = DB.findAll(person)
     assert(persons2.size === 1)
     assert(persons2(0).name === "Sara")
-    intercept(classOf[IllegalStateException]) { 
+    intercept(classOf[IllegalStateException]) {
       DB.findByIndex("Kalle", "name", person)
     }
     assert(true === true)
@@ -134,7 +134,7 @@ class InMemoryGeneratedPKSuite extends TestNGSuite {
     assert(persons.exists(_.name == "Sara"))
 
     assert(!persons.exists(_.name == "Kalle"))
-    intercept(classOf[IllegalStateException]) { 
+    intercept(classOf[IllegalStateException]) {
       DB.findByIndex("Kalle", "name", person)
     }
 
@@ -147,7 +147,7 @@ class InMemoryGeneratedPKSuite extends TestNGSuite {
     DB.store(Person("Jonas"))
     DB.store(Person("Sara"))
     val option: Option[Person] = DB.findByPK(pk, person)
-    option match { 
+    option match {
       case Some(res) => assert(res.name == "Kalle")
       case None => fail("failed findByPK")
     }

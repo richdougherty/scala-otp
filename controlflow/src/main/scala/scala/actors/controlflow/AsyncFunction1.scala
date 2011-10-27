@@ -62,7 +62,7 @@ trait AsyncFunction1[-T1, +R] extends AnyRef {
       }
     }
   }
-  
+
   /**
    * Apply this function in a separate actor. sending the function's result
    * as a <code>FunctionResult</code> down the returned <code>Channel</code>.
@@ -76,7 +76,7 @@ trait AsyncFunction1[-T1, +R] extends AnyRef {
     }
     channel
   }
-  
+
   /**
    * Converts the message returned by <code>applyInActor</code> into a
    * <code>FunctionResult</code>.
@@ -86,7 +86,7 @@ trait AsyncFunction1[-T1, +R] extends AnyRef {
     case TIMEOUT => Throw(new TimeoutException())
     case unknown => Throw(new MatchError(unknown))
   }
-  
+
   /**
    * Creates a function which wraps this function, adding with a timeout
    * feature. The new function has the same behaviour as this function except
@@ -104,7 +104,7 @@ trait AsyncFunction1[-T1, +R] extends AnyRef {
       }
     }
   }
-  
+
   /**
    * Creates a synchronous version of this function. When executed, the function
    * will suspend the current thread and run the underlying asynchronous in a
@@ -112,7 +112,7 @@ trait AsyncFunction1[-T1, +R] extends AnyRef {
    */
   def toFunction: RichFunction1[T1, R] = new RichFunction1[T1, R] {
     def apply(v1: T1): R = resultApply(v1).toFunction.apply
-    
+
     def resultApply(v1: T1): FunctionResult[R] = {
       val channel = AsyncFunction1.this.applyInActor(v1)
       channel.receive {

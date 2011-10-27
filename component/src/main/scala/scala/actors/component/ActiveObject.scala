@@ -43,7 +43,7 @@ object ActiveObject {
     supervisor
   }
 
-  private def supervise(proxy: ActiveObjectProxy): Supervisor = 
+  private def supervise(proxy: ActiveObjectProxy): Supervisor =
     supervise(
       RestartStrategy(OneForOne, 5, 1000),
       Component(
@@ -74,13 +74,13 @@ class ActiveObjectProxy(val target: AnyRef, val timeout: Int) extends Invocation
 
   private[component] val server = new GenericServerContainer(target.getClass.getName, () => dispatcher)
   server.setTimeout(timeout)
-  
+
   def invoke(proxy: AnyRef, m: Method, args: Array[AnyRef]): AnyRef = invoke(Invocation(m, args, target))
 
   def invoke(invocation: Invocation): AnyRef =  {
     if (invocation.method.isAnnotationPresent(oneway)) server ! invocation
     else {
-      val result: ErrRef[AnyRef] = server !!! (invocation, ErrRef({ throw new ActiveObjectInvocationTimeoutException("proxy invocation timed out after " + timeout + " milliseconds") })) 
+      val result: ErrRef[AnyRef] = server !!! (invocation, ErrRef({ throw new ActiveObjectInvocationTimeoutException("proxy invocation timed out after " + timeout + " milliseconds") }))
       result()
     }
   }
@@ -88,7 +88,7 @@ class ActiveObjectProxy(val target: AnyRef, val timeout: Int) extends Invocation
 
 /**
  * Represents a snapshot of the current invocation.
- * 
+ *
  * @author <a href="http://jonasboner.com">Jonas Bon&#233;r</a>
  */
 case class Invocation(val method: Method, val args: Array[Object], val target: AnyRef) {
@@ -120,7 +120,7 @@ case class Invocation(val method: Method, val args: Array[Object], val target: A
  * <pre>
  * scala> ErrRef(1)
  * res0: ErrRef[Int] = ErrRef@a96606
- *  
+ *
  * scala> res0()
  * res1: Int = 1
  *
@@ -128,13 +128,13 @@ case class Invocation(val method: Method, val args: Array[Object], val target: A
  *
  * scala> res0()
  * res3: Int = 3
- * 
+ *
  * scala> res0() = { println("Hello world"); 3}
  * Hello world
  *
  * scala> res0()
  * res5: Int = 3
- *  
+ *
  * scala> res0() = error("Lets see what happens here...")
  *
  * scala> res0()

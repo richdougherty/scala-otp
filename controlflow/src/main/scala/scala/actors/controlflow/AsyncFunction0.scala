@@ -94,7 +94,7 @@ trait AsyncFunction0[+R] extends AnyRef {
    */
   def toFunction: RichFunction0[R] = new RichFunction0[R] {
     def apply: R = resultApply.toFunction.apply
-    
+
     def resultApply: FunctionResult[R] = {
       val channel = AsyncFunction0.this.applyInActor
       channel.receive {

@@ -13,7 +13,7 @@ import scala.collection.jcl.Conversions._
 trait AsyncWritableByteChannel extends AsyncWritable {
   val channel: SelectableChannel with GatheringByteChannel
   val asyncSelector: AsyncSelector
-  
+
   protected def internalWrite(binary: Binary) = new AsyncFunction0[Unit] {
     def ->(fc: FC[Unit]): Nothing = {
       import fc.implicitThr

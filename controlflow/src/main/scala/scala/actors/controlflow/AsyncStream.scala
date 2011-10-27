@@ -78,7 +78,7 @@ trait AsyncStream[+A] {
   def isEmpty: Boolean
 
   def head: A
-  
+
   protected def addDefinedElems(buf: StringBuilder, prefix: String): StringBuilder = {
     val buf1 = buf.append(prefix).append(head)
     asyncTail.result match {
@@ -121,20 +121,20 @@ trait AsyncStream[+A] {
       }
     }
   }*/
-  
+
   /**
    * Convert this AsyncStream into a synchronous Stream. Calling
    * <code>tail</code> will block the current thread, while evaluation occurs
    * in a different actor.
    */
   def toStream: Stream[A] = new Stream[A] {
-    
+
     override def isEmpty = AsyncStream.this.isEmpty
-    
+
     def head = AsyncStream.this.head
 
     def tail = AsyncStream.this.asyncTail.toFunction.apply.toStream
-    
+
     protected def addDefinedElems(buf: StringBuilder, prefix: String): StringBuilder =
       AsyncStream.this.addDefinedElems(buf, prefix)
   }
@@ -182,10 +182,10 @@ trait AsyncStream[+A] {
     val itrResult = asyncElements.asyncFlatMap(itrF)
     AsyncStream.fromAsyncIterator(itrResult)
   }
- 
+
   def asyncFilter(p: AsyncFunction1[A, Boolean]): AsyncFunction0[AsyncStream[A]] =
     AsyncStream.fromAsyncIterator(asyncElements.asyncFilter(p))
-  
+
   def asyncForeach(f: AsyncFunction1[A, Unit]): AsyncFunction0[Unit] =
     asyncElements.asyncForeach(f)
 

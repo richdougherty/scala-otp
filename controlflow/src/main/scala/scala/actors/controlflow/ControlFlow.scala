@@ -91,7 +91,7 @@ object ControlFlow {
       case _: Any => body
     }
   }
-  
+
   // Throwable continuations
 
   /**
@@ -196,9 +196,9 @@ object ControlFlow {
       override def toFunction: RichFunction0[R] = self
 
     }
-    
+
   }
-  
+
   /**
    * Converts a <code>Function1</code> into a <code>RichFunction1</code>.
    */
@@ -228,7 +228,7 @@ object ControlFlow {
     }
 
   }
-  
+
   // Misc
 
   /**
