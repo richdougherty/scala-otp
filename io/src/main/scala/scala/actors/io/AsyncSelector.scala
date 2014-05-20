@@ -66,7 +66,7 @@ class AsyncSelector(val selector: Selector) {
         //println("AsyncSelector: "+ key + " newInterestOps: " + newInterestOps)
         key.interestOps(newInterestOps)
         key.attach(opMap)
-      }      
+      }
     }
 
     // Terminate actor if no current registrations.

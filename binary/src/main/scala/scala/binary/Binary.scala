@@ -38,13 +38,13 @@ object Binary {
    * Creats a Binary from a copy of the given bytes.
    */
   def fromArray(array: Array[Byte]): Binary = fromArray(array, true)
-  
+
   /**
    * Creates a Binary from a copy of a slice of the given bytes.
    */
   def fromArray(array: Array[Byte], offset: Int, length: Int): Binary =
     fromArray(array, offset, length, true)
-  
+
   /**
    * UNSAFE: Creates a Binary from the given bytes, optionally copying them.
    *
@@ -193,7 +193,7 @@ trait Binary extends RandomAccessSeq[Byte] with Binary.BinaryLike with Serializa
     }
     true
   }
-  
+
   override def projection: Binary.Projection = new Binary.Projection {
     def length = Binary.this.length
     def apply(i: Int) = Binary.this.apply(i)

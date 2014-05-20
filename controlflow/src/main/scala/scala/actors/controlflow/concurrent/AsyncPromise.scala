@@ -8,7 +8,7 @@ class AsyncPromise[A] extends AsyncFuture[A] {
   private sealed trait State
   private case class Unset(pending: Queue[FC[A]]) extends State
   private case class Set(result: FunctionResult[A]) extends State
-  
+
   private var state: State = Unset(Queue.Empty)
 
   def ->(fc: FC[A]): Nothing = synchronized {
@@ -22,7 +22,7 @@ class AsyncPromise[A] extends AsyncFuture[A] {
       }
     }
   }
-  
+
   def set(result: FunctionResult[A]): Unit = synchronized {
     state match {
       case Unset(pending) => {
@@ -42,7 +42,7 @@ class AsyncPromise[A] extends AsyncFuture[A] {
       case Set(value) => true
     }
   }
-  
+
   def result: Option[FunctionResult[A]] = synchronized {
     state match {
       case Unset(_) => None

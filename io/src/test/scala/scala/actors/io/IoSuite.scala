@@ -43,7 +43,7 @@ class IoSuite extends TestNGSuite with Checkers {
       val rssc  = new AsyncServerSocketChannel(ssc, selector)
       Actor.actor {
         println("Accepting")
-        rssc.asyncAccept -> fc1 { sc1: SocketChannel => 
+        rssc.asyncAccept -> fc1 { sc1: SocketChannel =>
           sc1.configureBlocking(false)
           val rsc1 = new AsyncSocketChannel(sc1, selector)
           println("Sending: " + new String(binary.toArray))
@@ -64,5 +64,5 @@ class IoSuite extends TestNGSuite with Checkers {
     println("Received: " + new String(result.toArray))
     assert(result == binary)
   }
-  
+
 }

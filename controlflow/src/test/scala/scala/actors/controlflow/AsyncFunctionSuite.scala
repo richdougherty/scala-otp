@@ -34,7 +34,7 @@ class AsyncFunctionSuite extends TestNGSuite with Checkers {
     assert((addOne compose double).toFunction.apply(2) == 5)
     assert((double compose addOne).toFunction.apply(2) == 6)
   }
-  
+
   @Test
   def testAsyncFunction0 = asyncTest(10000) {
     assert(two.toFunction.apply == 2)
@@ -64,5 +64,5 @@ class AsyncFunctionSuite extends TestNGSuite with Checkers {
               yield ()
     seq.toFunction.apply
   }
-  
+
 }

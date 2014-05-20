@@ -9,9 +9,9 @@ class AsyncEagerFuture[A](f: AsyncFunction0[A]) extends AsyncFuture[A] {
   Actor.actor { f -> resultFC((result: FunctionResult[A]) => promise.set(result)) }
 
   def ->(fc: FC[A]): Nothing = promise -> fc
-  
+
   def isSet: Boolean = promise.isSet
-  
+
   def result: Option[FunctionResult[A]] = promise.result
 
 }

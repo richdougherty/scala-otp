@@ -7,7 +7,7 @@ import scala.binary.Binary
 
 class AsyncOutputStream(out: OutputStream) extends AsyncWritable {
   if (out == null) throw new NullPointerException
-  
+
   final protected def internalWrite(binary: Binary) = new AsyncFunction0[Unit] {
     def ->(fc: FC[Unit]): Nothing = {
       try {

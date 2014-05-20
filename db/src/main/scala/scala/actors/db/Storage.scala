@@ -46,7 +46,7 @@ private[db] abstract class Storage(protected val schema: CovariantMap[Class[_], 
     }
 
     def next(table: Class[_]): PK = {
-      if (!keys.contains(table)) init(table) 
+      if (!keys.contains(table)) init(table)
       val pk = PK(keys(table).getAndIncrement)
       pk.table = table
       pk
@@ -59,15 +59,15 @@ private[db] abstract class Storage(protected val schema: CovariantMap[Class[_], 
       val columns: List[Column] = for (field <- table.getDeclaredFields.toList if field.getName != "$outer")
                                   yield Column(field.getName, field.getType)
       log.info("Creating table <{}> with columns <{}>", table.getName, columns)
-      
+
       val pkField = table.getDeclaredFields.toList.find(field => field.getName == pkName).getOrElse(throw new IllegalArgumentException("Primary key field <" + pkName + "> does not exist"))
       if (pkField.getType != classOf[PK]) throw new IllegalArgumentException("Primary key field <" + pkName + "> for table <" + table.getName + "> has to be of type <PK>")
-      
+
       if (schema.contains(table)) throw new IllegalArgumentException("Table <" + table.getName + "> already exists")
       schema(table) = Table(table, columns, pkColumn, PKFactory.indexFactory, GeneratePrimaryKeySequence(), Nil)
 
-      db += getPKColumnFor(table) -> new Treap[Index, AnyRef] 
-      addIndex(pkName, table, PKFactory.indexFactory)    
+      db += getPKColumnFor(table) -> new Treap[Index, AnyRef]
+      addIndex(pkName, table, PKFactory.indexFactory)
     } catch { case e => e.printStackTrace; e }
   }
 
@@ -80,23 +80,23 @@ private[db] abstract class Storage(protected val schema: CovariantMap[Class[_], 
     if (schema.contains(table)) throw new IllegalArgumentException("Table <" + table.getName + "> already exists")
     schema(table) = Table(table, columns, pkColumn, pkIndexFactory, CustomPrimaryKeySequence(), Nil)
 
-    db += getPKColumnFor(table) -> new Treap[Index, AnyRef] 
-    addIndex(pkName, table, pkIndexFactory)    
+    db += getPKColumnFor(table) -> new Treap[Index, AnyRef]
+    addIndex(pkName, table, pkIndexFactory)
   }
 
   def addIndex(columnName: String, table: Class[_], indexFactory: (Any) => Index) = {
-    val field = try { 
-      val field = table.getDeclaredField(columnName) 
+    val field = try {
+      val field = table.getDeclaredField(columnName)
       field.setAccessible(true)
       field
-    } catch { 
-      case e => throw new IllegalArgumentException("Could not get index <" + columnName + "> for table <" + table.getName + "> due to: " + e.toString) 
+    } catch {
+      case e => throw new IllegalArgumentException("Could not get index <" + columnName + "> for table <" + table.getName + "> due to: " + e.toString)
     }
 
     val currentDB = db(getPKColumnFor(table))
     val emptyTreap = new Treap[Index, Map[Index, AnyRef]]()
 
-    val fullTreap = currentDB.elements.foldLeft(emptyTreap) { (indexTreap, entry) => 
+    val fullTreap = currentDB.elements.foldLeft(emptyTreap) { (indexTreap, entry) =>
       val entity = entry._2
       val index = indexFactory(field.get(entity))
       indexTreap.get(index) match {
@@ -123,7 +123,7 @@ private[db] abstract class Storage(protected val schema: CovariantMap[Class[_], 
   def findTreapFor(columnName: String, table: Class[_]): AnyRef = {
     ensureTableExists(table)
     if (getPKColumnFor(table) == columnName) {
-      db(getPKColumnFor(table))      
+      db(getPKColumnFor(table))
     } else {
       val column = getColumnFor(columnName, table)
       ensureIndexExists(column)
@@ -139,13 +139,13 @@ private[db] abstract class Storage(protected val schema: CovariantMap[Class[_], 
 
     // get and set primary key
     val pkIndex = table.pkSequenceScheme match {
-      case GeneratePrimaryKeySequence() => 
+      case GeneratePrimaryKeySequence() =>
         val pk = PKFactory.next(tableClass)
         setIndexFor(entity, pkColumn.name, pk)
         pk
-      case CustomPrimaryKeySequence() => 
+      case CustomPrimaryKeySequence() =>
         getPKIndexFor(entity)
-    }    
+    }
 
     // update db
     db(pkColumn) = db(pkColumn).upd(pkIndex, entity)
@@ -170,7 +170,7 @@ private[db] abstract class Storage(protected val schema: CovariantMap[Class[_], 
     val table = entity.getClass
     ensureTableExists(table)
     val pkIndex = getPKIndexFor(entity)
-    findByPK(pkIndex, entity.getClass).getOrElse(throw new IllegalArgumentException("Entity <" + entity + "> is not persisted and can therefore not be removed"))    
+    findByPK(pkIndex, entity.getClass).getOrElse(throw new IllegalArgumentException("Entity <" + entity + "> is not persisted and can therefore not be removed"))
     val pkColumn = getPKColumnFor(table)
 
     // db
@@ -183,7 +183,7 @@ private[db] abstract class Storage(protected val schema: CovariantMap[Class[_], 
       val (column, field, indexFactory) = item
       val indexTreap = indices(column)
       val index = getIndexFor(entity, column.name)
-      indices(column) = indexTreap.del(index) 
+      indices(column) = indexTreap.del(index)
     }
   }
 
@@ -195,11 +195,11 @@ private[db] abstract class Storage(protected val schema: CovariantMap[Class[_], 
     // indexes
     schema(table).indices.foreach { item =>
       val (column, field, indexFactory) = item
-      if (column.table == table) { 
+      if (column.table == table) {
         val indexTreap = indices(column)
         val entity = findByPK(pkIndex, table).getOrElse(throw new IllegalStateException("No such primary key <" + pkIndex + "> for table <" + table.getName + ">"))
         val index = getIndexFor(entity, column.name)
-        indices(column) = indexTreap.del(index)         
+        indices(column) = indexTreap.del(index)
       }
     }
 
@@ -219,10 +219,10 @@ private[db] abstract class Storage(protected val schema: CovariantMap[Class[_], 
       getOrElse(throw new IllegalStateException("No such index <" + columnName + "> for table <" + table.getName + ">")).
       values.toList
     indices(column) = indexTreap.del(index)
-  
+
     // db
     val pkColumn = getPKColumnFor(table)
-    entities.foreach { entity => 
+    entities.foreach { entity =>
       val pkIndex = getPKIndexFor(entity)
       val newTreap = db(pkColumn).del(pkIndex)
       db(pkColumn) = newTreap
@@ -232,7 +232,7 @@ private[db] abstract class Storage(protected val schema: CovariantMap[Class[_], 
   def findByPK(pkIndex: Index, table: Class[_]): Option[AnyRef] = {
     ensureTableExists(table)
     val pkColumn = getPKColumnFor(table)
-    db(pkColumn).get(pkIndex) 
+    db(pkColumn).get(pkIndex)
   }
 
   def findByIndex(index: Index, columnName: String, table: Class[_]): List[AnyRef] = {
@@ -341,7 +341,7 @@ private[db] abstract class Storage(protected val schema: CovariantMap[Class[_], 
     indices(column).until(until).values.toList
   }
 
-  def clear = { 
+  def clear = {
     db.clear
     indices.clear
     for (table <- schema.values) db += getPKColumnFor(table.clazz) -> new Treap[Index, AnyRef]
@@ -368,20 +368,20 @@ private[db] abstract class Storage(protected val schema: CovariantMap[Class[_], 
   }
 
   protected def getIndexFor(entity: AnyRef, columnName: String): Index = {
-    try { 
+    try {
       val (_, field, indexFactory) = schema(entity.getClass).indices.find(item => item._1.name == columnName).getOrElse(throw new IllegalArgumentException("Could not get primary key <" + columnName + "> for table <" + entity.getClass.getName + ">: no such column"))
       indexFactory(field.get(entity))
-    } catch { 
-      case e => throw new IllegalArgumentException("Could not get index <" + columnName + "> for table <" + entity.getClass.getName + "> due to: " + e.toString) 
+    } catch {
+      case e => throw new IllegalArgumentException("Could not get index <" + columnName + "> for table <" + entity.getClass.getName + "> due to: " + e.toString)
     }
   }
 
   protected def setIndexFor(entity: AnyRef, columnName: String, index: Index) = {
-    try { 
+    try {
       val (_, field, _) = schema(entity.getClass).indices.find(item => item._1.name == columnName).getOrElse(throw new IllegalArgumentException("Could not get primary key <" + columnName + "> for table <" + entity.getClass.getName + ">: no such column"))
       field.set(entity, index)
-    } catch { 
-      case e => throw new IllegalArgumentException("Could not get primary key <" + columnName + "> for table <" + entity.getClass.getName + "> due to: " + e.toString) 
+    } catch {
+      case e => throw new IllegalArgumentException("Could not get primary key <" + columnName + "> for table <" + entity.getClass.getName + "> due to: " + e.toString)
     }
   }
 

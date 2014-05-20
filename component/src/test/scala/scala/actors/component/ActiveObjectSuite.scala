@@ -20,17 +20,17 @@ class ActiveObjectSuite extends TestNGSuite {
   private var messageLog = ""
 
   trait Foo {
-    def foo(msg: String): String    
+    def foo(msg: String): String
     @oneway def bar(msg: String)
     def longRunning
     def throwsException
   }
 
   class FooImpl extends Foo {
-    val bar: Bar = new BarImpl 
-    def foo(msg: String): String = { 
+    val bar: Bar = new BarImpl
+    def foo(msg: String): String = {
       messageLog += msg
-      "return_foo " 
+      "return_foo "
     }
     def bar(msg: String) = bar.bar(msg)
     def longRunning = Thread.sleep(10000)
@@ -42,7 +42,7 @@ class ActiveObjectSuite extends TestNGSuite {
   }
 
   class BarImpl extends Bar {
-    def bar(msg: String) = { 
+    def bar(msg: String) = {
       Thread.sleep(100)
       messageLog += msg
     }
@@ -54,7 +54,7 @@ class ActiveObjectSuite extends TestNGSuite {
   @Test { val groups=Array("unit") }
   def testCreateGenericServerBasedComponentUsingDefaultSupervisor = {
     val foo = ActiveObject.newInstance[Foo](classOf[Foo], new FooImpl, 1000)
-    
+
     val result = foo.foo("foo ")
     messageLog += result
 
@@ -69,7 +69,7 @@ class ActiveObjectSuite extends TestNGSuite {
   def testCreateGenericServerBasedComponentUsingCustomSupervisorConfiguration = {
     val proxy = new ActiveObjectProxy(new FooImpl, 1000)
 
-    val supervisor = 
+    val supervisor =
       ActiveObject.supervise(
         RestartStrategy(AllForOne, 3, 100),
         Component(
@@ -81,7 +81,7 @@ class ActiveObjectSuite extends TestNGSuite {
 
     val result = foo.foo("foo ")
     messageLog += result
-    
+
     foo.bar("bar ")
     messageLog += "before_bar "
 
@@ -96,7 +96,7 @@ class ActiveObjectSuite extends TestNGSuite {
     val fooProxy = new ActiveObjectProxy(new FooImpl, 1000)
     val barProxy = new ActiveObjectProxy(new BarImpl, 1000)
 
-    val supervisor = 
+    val supervisor =
       ActiveObject.supervise(
         RestartStrategy(AllForOne, 3, 100),
         Component(
@@ -118,13 +118,13 @@ class ActiveObjectSuite extends TestNGSuite {
 
     Thread.sleep(500)
     assert(messageLog === "foo return_foo before_bar bar ")
-    
+
     supervisor ! Stop
   }
 
   @Test { val groups=Array("unit") }
   def testCreateGenericServerBasedComponentUsingDefaultSupervisorAndForcedTimeout = {
-    val foo = ActiveObject.newInstance[Foo](classOf[Foo], new FooImpl, 1000)  
+    val foo = ActiveObject.newInstance[Foo](classOf[Foo], new FooImpl, 1000)
     intercept(classOf[ActiveObjectInvocationTimeoutException]) {
       foo.longRunning
     }
@@ -133,7 +133,7 @@ class ActiveObjectSuite extends TestNGSuite {
 
   @Test { val groups=Array("unit") }
   def testCreateGenericServerBasedComponentUsingDefaultSupervisorAndForcedException = {
-    val foo = ActiveObject.newInstance[Foo](classOf[Foo], new FooImpl, 10000)  
+    val foo = ActiveObject.newInstance[Foo](classOf[Foo], new FooImpl, 10000)
     intercept(classOf[RuntimeException]) {
       foo.throwsException
     }

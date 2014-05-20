@@ -14,6 +14,6 @@ class AsyncConstantFuture[A](value: FunctionResult[A]) extends AsyncFuture[A] {
   def ->(fc: FC[A]): Nothing = value.toAsyncFunction -> fc
 
   def isSet: Boolean = true
-  
+
   def result: Option[FunctionResult[A]] = Some(value)
 }

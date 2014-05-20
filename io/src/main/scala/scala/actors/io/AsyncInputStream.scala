@@ -7,7 +7,7 @@ import scala.binary.Binary
 
 class AsyncInputStream(in: InputStream) extends AsyncReadable {
   if (in == null) throw new NullPointerException
-  
+
   // returns zero-length Binary when reaches end
   final protected def internalRead(bufferLength: Int) = new AsyncFunction0[Binary] {
     def ->(fc: FC[Binary]) = {

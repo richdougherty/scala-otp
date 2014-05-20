@@ -7,7 +7,7 @@
   <artifactId>scala-behavior</artifactId>
 
   <name>Scala Actors Behavior Module</name>
-  <description>Implements Erlang-style Behaviors for Scala; Supervisor, GenericServer, GenericEvent and GenericFiniteStateMachine allowing creating fault-tolerant actor-based enterprise systems.</description> 
+  <description>Implements Erlang-style Behaviors for Scala; Supervisor, GenericServer, GenericEvent and GenericFiniteStateMachine allowing creating fault-tolerant actor-based enterprise systems.</description>
 
   <parent>
     <groupId>org.scala-libs</groupId>

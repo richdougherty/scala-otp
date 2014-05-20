@@ -101,7 +101,7 @@ private[binary] final case class CompositeBinary private[binary] (private[binary
         protected def forcedSlice0(from2: Int, until2: Int): Binary = {
           CompositeBinary.this.forcedSlice0(from + from2, from + until2)
         }
-      } 
+      }
     }
   }
 
@@ -156,7 +156,7 @@ private[binary] final case class CompositeBinary private[binary] (private[binary
     }
     left = new ArrayBinary(array, 0, length)
   }
-  
+
   private def readResolve: AnyRef = left
 
 }

@@ -30,10 +30,10 @@ class DBException(val message: String) extends RuntimeException {
  */
 @serializable
 case class Table(
-  clazz: Class[_], 
-  columns: List[Column], 
-  pk: Column,  
-  pkIndexFactory: (Any) => Index, 
+  clazz: Class[_],
+  columns: List[Column],
+  pk: Column,
+  pkIndexFactory: (Any) => Index,
   pkSequenceScheme: PrimaryKeySequenceScheme,
   var indices: List[Tuple3[Column, Field, (Any) => Index]]) {
   override def hashCode: Int = {
@@ -97,13 +97,13 @@ class DB extends Logging {
     if (!isInitialized.getAndSet(true)) db ! Init(config)
     this
   }
-  
+
   def start: DB = {
     if (!isInitialized.get) throw new IllegalStateException("DB is not initialized, make sure that the <DB.init(config)> is invoked prior to <DB.start>")
     if (!isStarted.getAndSet(true)) supervisor ! Start
     this
   }
-  
+
   def stop = {
     if (!isStarted.get) throw new IllegalStateException("DB is not started")
     if (isStarted.getAndSet(false)) supervisor ! Stop
@@ -111,13 +111,13 @@ class DB extends Logging {
 
   def clear = handleStatus(db !!! (Clear(), throw new DBException("Timed out while trying to clear the database"), INVOCATION_TIME_OUT))
 
-  def newQueryBuilderFor[K <% Ordered[K], V <: AnyRef](columnName: String, table: Class[_]) = { 
+  def newQueryBuilderFor[K <% Ordered[K], V <: AnyRef](columnName: String, table: Class[_]) = {
     val treap = getTreapFor[K, V](columnName, table)
     new QueryBuilder[K, V](treap, this)
   }
 
   // FIXME: implement correctly
-  def execute[K <% Ordered[K], V <: AnyRef, T <: Treap[K, V]](body: => T): T = { 
+  def execute[K <% Ordered[K], V <: AnyRef, T <: Treap[K, V]](body: => T): T = {
     body
   }
 
@@ -145,13 +145,13 @@ class DB extends Logging {
     }
   }
 
-  def remove(entity: AnyRef) = 
+  def remove(entity: AnyRef) =
     handleStatus(db !!! (RemoveByEntity(entity), throw new DBException("Timed out while trying to remove entity by reference"), INVOCATION_TIME_OUT))
 
-  def removeByPK(pkIndex: Index, table: Class[_]) = 
+  def removeByPK(pkIndex: Index, table: Class[_]) =
     handleStatus(db !!! (RemoveByPK(pkIndex, table), throw new DBException("Timed out while trying to remove entity by primary key"), INVOCATION_TIME_OUT))
 
-  def removeByIndex(index: Index, columnName: String, table: Class[_]) = 
+  def removeByIndex(index: Index, columnName: String, table: Class[_]) =
     handleStatus(db !!! (RemoveByIndex(index, columnName, table), throw new DBException("Timed out while trying to remove entity by index"), INVOCATION_TIME_OUT))
 
   def findByPK[T <: AnyRef](index: Index, table: Class[_]): Option[T] = {
@@ -301,13 +301,13 @@ class DB extends Logging {
     }
   }
 
-  private def getTreapFor[K <% Ordered[K], V <: AnyRef](columnName: String, table: Class[_]) = { 
+  private def getTreapFor[K <% Ordered[K], V <: AnyRef](columnName: String, table: Class[_]) = {
     val result: DBMessage = db !!! (FindTreap(columnName, table), throw new DBException("Timed out while trying to find treap"), INVOCATION_TIME_OUT)
     result match {
       case TreapForTable(treap) => treap.asInstanceOf[Treap[K, V]]
       case failure: Failure => handleFailure(failure)
       case msg => throw new IllegalStateException("Received unexpected message: " + msg)
-    }    
+    }
   }
 
   private def handleStatus[T](status: Status): Unit = handleStatus(status, {})
@@ -354,14 +354,14 @@ private[db] class DBServer extends GenericServer with Logging {
   }*/
 
   override def body: PartialFunction[Any, Unit] = {
-    
+
     case CreateTableWithGeneratedPK(table, pkName) =>
       log.info("Creating table <{}>", table)
       try {
         storage.createTable(table, pkName)
         reply(Success)
       } catch {
-        case e => 
+        case e =>
           log.error("Could not create table due to: {}", e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -372,7 +372,7 @@ private[db] class DBServer extends GenericServer with Logging {
         storage.createTable(table, pkName, pkIndexFactory)
         reply(Success)
       } catch {
-        case e => 
+        case e =>
           log.error("Could not create table due to: {}", e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -383,7 +383,7 @@ private[db] class DBServer extends GenericServer with Logging {
         storage.addIndex(columnName, table, indexFactory)
         reply(Success)
       } catch {
-        case e => 
+        case e =>
           log.error("Could not create index due to: {}", e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -392,7 +392,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(TreapForTable(storage.findTreapFor(columnName, table)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not create index due to: {}", e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -402,7 +402,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(PrimaryKey(storage.store(entity)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not store entity <{}> due to: {}", entity, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -413,7 +413,7 @@ private[db] class DBServer extends GenericServer with Logging {
         storage.remove(entity)
         reply(Success)
       } catch {
-        case e => 
+        case e =>
           log.error("Could not remove entity <{}> due to: {}", entity, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -424,7 +424,7 @@ private[db] class DBServer extends GenericServer with Logging {
         storage.removeByPK(pkIndex, table)
         reply(Success)
       } catch {
-        case e => 
+        case e =>
           log.error("Could not remove entity with primary key <{}> due to: {}", pkIndex, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -435,7 +435,7 @@ private[db] class DBServer extends GenericServer with Logging {
         storage.removeByIndex(index, columnName, table)
         reply(Success)
       } catch {
-        case e => 
+        case e =>
           log.error("Could not remove entity with index <{}> due to: {}", index, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -445,7 +445,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(Entity(storage.findByPK(index, table)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not find entity by primary key <{}> due to: {}", index, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -455,7 +455,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(Entities(storage.findByIndex(index, columnName, table)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not find entity by index <{}> due to: {}", index, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -465,7 +465,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(Entities(storage.findAll(table)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not find all entities in table <{}> due to: {}", table.getName, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -475,7 +475,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(PrimaryKey(storage.firstPK(table)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not find primary key for <{}> due to: {}", table, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -485,7 +485,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(PrimaryKey(storage.lastPK(table)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not find primary key for <{}> due to: {}", table, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -495,7 +495,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(PrimaryKey(storage.firstIndex(columnName, table)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not find primary key for <{}> due to: {}", table, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -505,7 +505,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(PrimaryKey(storage.lastIndex(columnName, table)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not find primary key for <{}> due to: {}", table, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -515,7 +515,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(Entities(storage.rangePK(from, until, table)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not not find entities by primary key range in table <{}> due to: {}", table.getName, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -525,7 +525,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(Entities(storage.rangeIndex(from, until, columnName, table)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not not find entities by index range in table <{}> due to: {}", table.getName, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -535,7 +535,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(Entities(storage.rangeFromPK(from, table)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not not find entities from primary key range in table <{}> due to: {}", table.getName, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -545,7 +545,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(Entities(storage.rangeFromIndex(from, columnName, table)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not not find entities from index range in table <{}> due to: {}", table.getName, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -555,7 +555,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(Entities(storage.rangeUntilPK(until, table)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not not find entities until primary key range in table <{}> due to: {}", table.getName, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -565,7 +565,7 @@ private[db] class DBServer extends GenericServer with Logging {
       try {
         reply(Entities(storage.rangeUntilIndex(until, columnName, table)))
       } catch {
-        case e => 
+        case e =>
           log.error("Could not not find entities until index range in table <{}> due to: {}", table.getName, e.getMessage)
           reply(Failure(e.getMessage, Some(e)))
       }
@@ -576,7 +576,7 @@ private[db] class DBServer extends GenericServer with Logging {
         storage.clear
         log.info("Database cleared successfully")
         reply(Success)
-      } catch { 
+      } catch {
         case e =>
           log.error("Database could not be cleared due to: {}", e.getMessage)
           reply(Failure(e.getMessage, Some(e)))

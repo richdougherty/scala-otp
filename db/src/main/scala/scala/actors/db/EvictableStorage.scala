@@ -37,13 +37,13 @@ private[db] class EvictableStorage(schema: CovariantMap[Class[_], Table], val ti
 
     // get and set primary key
     val pkIndex = table.pkSequenceScheme match {
-      case GeneratePrimaryKeySequence() => 
+      case GeneratePrimaryKeySequence() =>
         val pk = PKFactory.next(tableClass)
         setIndexFor(entity, pkColumn.name, pk)
         pk
-      case CustomPrimaryKeySequence() => 
+      case CustomPrimaryKeySequence() =>
         getPKIndexFor(entity)
-    }    
+    }
 
     // update db
     db(pkColumn) = db(pkColumn).upd(pkIndex, evictable)
@@ -64,12 +64,12 @@ private[db] class EvictableStorage(schema: CovariantMap[Class[_], Table], val ti
     pkIndex
   }
 
-  override def findByPK(pkIndex: Index, table: Class[_]): Option[AnyRef] = { 
+  override def findByPK(pkIndex: Index, table: Class[_]): Option[AnyRef] = {
     ensureTableExists(table)
     val pkColumn = getPKColumnFor(table)
     db(pkColumn).get(pkIndex) match {
       case None => None
-      case Some(entity) => 
+      case Some(entity) =>
         val evictable = entity.asInstanceOf[Evictable]
         if (evictable.evict_?) {
           remove(evictable.entity) // remove the evicted entity
@@ -82,7 +82,7 @@ private[db] class EvictableStorage(schema: CovariantMap[Class[_], Table], val ti
     ensureTableExists(table)
     val column = getColumnFor(columnName, table)
     ensureIndexExists(column)
-    val evictables = 
+    val evictables =
       indices(column).get(index).
       getOrElse(throw new IllegalStateException("No such index <" + columnName + "> for table <" + table.getName + ">")).
       values.toList.asInstanceOf[List[Evictable]]

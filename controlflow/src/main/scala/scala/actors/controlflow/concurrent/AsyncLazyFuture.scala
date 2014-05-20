@@ -7,7 +7,7 @@ class AsyncLazyFuture[A](f: AsyncFunction0[A]) extends AsyncFuture[A] {
   private sealed trait State
   private case class Initial(f: AsyncFunction0[A]) extends State
   private case class Run(promise: AsyncPromise[A]) extends State
-  
+
   private var state: State = Initial(f)
 
   def ->(fc: FC[A]): Nothing = synchronized {
@@ -32,14 +32,14 @@ class AsyncLazyFuture[A](f: AsyncFunction0[A]) extends AsyncFuture[A] {
       case _ => ()
     }
   }
-  
+
   def isSet: Boolean = synchronized {
     state match {
       case Initial(_) => false
       case Run(promise) => promise.isSet
     }
   }
-  
+
   def result: Option[FunctionResult[A]] = synchronized {
     state match {
       case Initial(_) => None

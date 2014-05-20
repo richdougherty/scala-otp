@@ -1,16 +1,16 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <name>Scala OTP</name>
   <description>
     The Scala OTP project aims implementing an enterprise platform and runtime for Scala Actors similar to Erlangs OTP platform, for implementation of highly fault-tolerant, distributed actor-based enterprise systems.
-  </description> 
+  </description>
 
   <groupId>org.scala-libs</groupId>
   <artifactId>scala-otp</artifactId>
-  
+
   <properties>
     <scala.version>2.7.3</scala.version>
     <library.version>0.1-SNAPSHOT</library.version>
@@ -49,7 +49,7 @@
       <name>Scala-Tools Maven2 Repository</name>
       <url>http://scala-tools.org/repo-releases</url>
     </pluginRepository>
-  </pluginRepositories>  
+  </pluginRepositories>
 
   <dependencyManagement>
     <dependencies>

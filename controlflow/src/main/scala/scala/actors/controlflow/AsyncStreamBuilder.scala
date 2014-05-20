@@ -25,7 +25,7 @@ class AsyncStreamBuilder[A] {
     tail.set(Return(withElement))
     tail = newTail
   }
-  
+
   def append(getStream: AsyncFunction0[AsyncStream[A]]): Unit = synchronized {
     val oldTail = tail
     val newTail = new AsyncPromise[AsyncStream[A]]

@@ -87,7 +87,7 @@ object Helpers extends Logging {
 	    case a: A =>
 	      value = Some(a)
 	      k(a)
-	  }        
+	  }
         def isSet = receiveWithin(0).isDefined
         def receiveWithin(timeout: Int): Option[A] = value match {
           case None => ch.receiveWithin(timeout) {

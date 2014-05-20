@@ -5,7 +5,7 @@
   <artifactId>scala-component</artifactId>
 
   <name>Scala Actors Component Module</name>
-  <description>Asynchronous components</description> 
+  <description>Asynchronous components</description>
 
   <parent>
     <groupId>org.scala-libs</groupId>

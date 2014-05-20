@@ -4,7 +4,7 @@ import scala.actors.controlflow.ControlFlow._
 import scala.collection.immutable.Queue
 
 class AsyncLock {
-  
+
   sealed trait State
   case object Unlocked extends State
   case class Locked(q: Queue[FC[Unit]]) extends State

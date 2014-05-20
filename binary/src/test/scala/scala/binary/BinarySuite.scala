@@ -18,7 +18,7 @@ import org.scalatest._
 class BinarySuite extends TestNGSuite with Checkers {
 
   implicit def arbBinary: Arbitrary[Binary] = Arbitrary {
-    def genArrayBinary(multiplier: Int) = 
+    def genArrayBinary(multiplier: Int) =
       for (prefix <- Arbitrary.arbitrary[Array[Byte]];
            content <- Arbitrary.arbitrary[Array[Byte]];
            suffix <- Arbitrary.arbitrary[Array[Byte]]) yield {
@@ -175,7 +175,7 @@ class BinarySuite extends TestNGSuite with Checkers {
       same(arrayAppend, binaryAppend)
     }
   }
-  
+
   @Test
   def testSlice = {
     val array = new Array[Byte](0)
@@ -183,7 +183,7 @@ class BinarySuite extends TestNGSuite with Checkers {
     check((array: Array[Byte]) =>
         same(array.take(5), Binary.fromArray(array).take(5)))
   }
-  
+
   @Test
   def testTake = {
     val array = new Array[Byte](0)
